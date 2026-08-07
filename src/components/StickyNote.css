@@ -1,0 +1,76 @@
+.sticky-note {
+  position: absolute;
+  min-height: 90px;
+  border-radius: 4px;
+  padding: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  cursor: grab;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #26262b;
+}
+
+.sticky-note.selected {
+  outline: 2px solid #4262ff;
+  outline-offset: 2px;
+}
+
+.sticky-note-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.sticky-note-input {
+  width: 100%;
+  min-height: 80px;
+  resize: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+  cursor: text;
+}
+
+.note-toolbar {
+  position: absolute;
+  top: -42px;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #fff;
+  border-radius: 8px;
+  padding: 5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  cursor: default;
+}
+
+.color-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  padding: 0;
+}
+
+.delete-btn {
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: #6b6375;
+  cursor: pointer;
+  font-size: 12px;
+  border-radius: 5px;
+  margin-left: 2px;
+}
+
+.delete-btn:hover {
+  background: #f1f1f4;
+  color: #e53935;
+}
