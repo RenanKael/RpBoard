@@ -8,7 +8,10 @@ import './App.css';
 const STORAGE_KEY = 'rpboard-state-v1';
 
 function uid() {
-  return crypto.randomUUID();
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 function loadInitialContent() {
