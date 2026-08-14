@@ -1,16 +1,23 @@
-# React + Vite
+# RPBoard
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+App Expo (React Native) para montar quadros de storyline/timeline de RPG num
+canvas infinito: notas adesivas, eventos numa linha do tempo e conexões
+manuais entre blocos, com pan e pinch-to-zoom por toque.
 
-Currently, two official plugins are available:
+## Rodar no celular
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+npx expo start
+```
 
-## React Compiler
+Escaneie o QR code com o app **Expo Go** (Android/iOS).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Estrutura
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+- `App.js` — dono do estado do board (notas, eventos, conexões) e persistência.
+- `src/components/Board.js` — canvas: pan, pinch-to-zoom, grade de fundo, camada de conexões.
+- `src/components/StickyNote.js` / `EventItem.js` — os blocos (notas livres e eventos na timeline).
+- `src/components/ConnectHandle.js` / `ConnectOverlay.js` — o "+" de arrastar para ligar duas notas.
+- `src/hooks/useHistory.js` — undo/redo.
+- `src/storage.js` — persistência local (AsyncStorage).

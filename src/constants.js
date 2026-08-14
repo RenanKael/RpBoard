@@ -1,5 +1,8 @@
 export const NOTE_WIDTH = 200;
 export const DEFAULT_NOTE_HEIGHT = 110;
+export const HANDLE_SIZE = 28;
+export const MIN_SCALE = 0.25;
+export const MAX_SCALE = 2.5;
 
 export const NOTE_COLORS = [
   '#fff59d',

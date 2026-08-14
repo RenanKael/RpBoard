@@ -1,38 +1,34 @@
-import { useCallback, useEffect, useState } from 'react';
-import Sidebar from './components/Sidebar';
-import Board from './components/Board';
-import { useHistory } from './hooks/useHistory';
-import { MARKER_PRESETS } from './constants';
-import './App.css';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { StatusBar } from 'expo-status-bar';
+import Sidebar from './src/components/Sidebar';
+import Board from './src/components/Board';
+import { useHistory } from './src/hooks/useHistory';
+import { loadContent, saveContent } from './src/storage';
+import { uid } from './src/utils/uid';
+import { MARKER_PRESETS } from './src/constants';
 
-const STORAGE_KEY = 'rpboard-state-v1';
-
-function uid() {
-  return crypto.randomUUID();
-}
-
-function loadInitialContent() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed && Array.isArray(parsed.freeNotes) && Array.isArray(parsed.events)) {
-        return parsed;
-      }
-    }
-  } catch (err) {
-    console.warn('Não foi possível carregar o board salvo', err);
-  }
-  return { freeNotes: [], events: [] };
-}
+const EMPTY_CONTENT = { freeNotes: [], events: [], connections: [] };
 
 export default function App() {
-  const { state, set, commit, snapshot, undo, redo, canUndo, canRedo } = useHistory(loadInitialContent);
+  const [loading, setLoading] = useState(true);
+  const { state, set, commit, snapshot, undo, redo, canUndo, canRedo } = useHistory(EMPTY_CONTENT);
   const [tool, setTool] = useState('select');
   const [selected, setSelected] = useState(null);
+  const hasLoaded = useRef(false);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    loadContent().then((loaded) => {
+      set(() => loaded);
+      hasLoaded.current = true;
+      setLoading(false);
+    });
+  }, [set]);
+
+  useEffect(() => {
+    if (!hasLoaded.current) return;
+    saveContent(state);
   }, [state]);
 
   const addFreeNote = useCallback(
@@ -111,7 +107,13 @@ export default function App() {
 
   const deleteFreeNote = useCallback(
     (id) => {
-      commit((prev) => ({ ...prev, freeNotes: prev.freeNotes.filter((n) => n.id !== id) }));
+      commit((prev) => ({
+        ...prev,
+        freeNotes: prev.freeNotes.filter((n) => n.id !== id),
+        connections: prev.connections.filter(
+          (c) => !(c.from.type === 'freeNote' && c.from.id === id) && !(c.to.type === 'freeNote' && c.to.id === id)
+        ),
+      }));
       setSelected(null);
     },
     [commit]
@@ -153,45 +155,53 @@ export default function App() {
 
   const deleteEvent = useCallback(
     (id) => {
-      commit((prev) => ({ ...prev, events: prev.events.filter((e) => e.id !== id) }));
+      commit((prev) => ({
+        ...prev,
+        events: prev.events.filter((e) => e.id !== id),
+        connections: prev.connections.filter(
+          (c) => !(c.from.type === 'event' && c.from.id === id) && !(c.to.type === 'event' && c.to.id === id)
+        ),
+      }));
       setSelected(null);
     },
     [commit]
   );
 
-  useEffect(() => {
-    function onKeyDown(e) {
-      const tag = document.activeElement?.tagName;
-      if (tag === 'TEXTAREA' || tag === 'INPUT') return;
+  const addConnection = useCallback(
+    (from, to) => {
+      if (from.type === to.type && from.id === to.id) return;
+      commit((prev) => {
+        const exists = prev.connections.some(
+          (c) =>
+            (c.from.type === from.type && c.from.id === from.id && c.to.type === to.type && c.to.id === to.id) ||
+            (c.from.type === to.type && c.from.id === to.id && c.to.type === from.type && c.to.id === from.id)
+        );
+        if (exists) return prev;
+        return { ...prev, connections: [...prev.connections, { id: uid(), from, to }] };
+      });
+    },
+    [commit]
+  );
 
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-        e.preventDefault();
-        if (e.shiftKey) redo();
-        else undo();
-        return;
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
-        e.preventDefault();
-        redo();
-        return;
-      }
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selected) {
-        e.preventDefault();
-        if (selected.type === 'freeNote') deleteFreeNote(selected.id);
-        else if (selected.type === 'event') deleteEvent(selected.id);
-        return;
-      }
-      if (e.key === 'Escape') {
-        setSelected(null);
-        setTool('select');
-      }
-    }
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [selected, undo, redo, deleteFreeNote, deleteEvent]);
+  const deleteConnection = useCallback(
+    (id) => {
+      commit((prev) => ({ ...prev, connections: prev.connections.filter((c) => c.id !== id) }));
+      setSelected(null);
+    },
+    [commit]
+  );
+
+  if (loading) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
-    <div className="app">
+    <GestureHandlerRootView style={styles.app}>
+      <StatusBar style="dark" />
       <Sidebar tool={tool} onToolChange={setTool} onUndo={undo} onRedo={redo} canUndo={canUndo} canRedo={canRedo} />
       <Board
         content={state}
@@ -213,7 +223,22 @@ export default function App() {
         onUpdateEventNoteColor={updateEventNoteColor}
         onUpdateEventMarkerStyle={updateEventMarkerStyle}
         onDeleteEvent={deleteEvent}
+        onAddConnection={addConnection}
+        onDeleteConnection={deleteConnection}
       />
-    </div>
+    </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  app: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  loading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+  },
+});
