@@ -6,7 +6,6 @@ import StickyNote from './StickyNote';
 import EventItem from './EventItem';
 import ConnectionsLayer from './ConnectionsLayer';
 import ConnectOverlay from './ConnectOverlay';
-import GridBackground from './GridBackground';
 import ZoomControl from './ZoomControl';
 import { NOTE_WIDTH, DEFAULT_NOTE_HEIGHT, MIN_SCALE, MAX_SCALE } from '../constants';
 
@@ -176,7 +175,6 @@ export default function Board({
         }}
       >
         <Animated.View style={[styles.world, { transformOrigin: [0, 0, 0] }, worldStyle]}>
-          <GridBackground />
           <View style={styles.timelineLine} />
 
           <ConnectionsLayer
