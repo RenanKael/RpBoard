@@ -63,9 +63,16 @@ export default function App() {
     };
   }, [set]);
 
+  // Debounced — `state` changes on every touch-move frame during a drag,
+  // and JSON.stringify-ing + writing the whole board to AsyncStorage that
+  // often (worse the more blocks a timeline has) was heavy enough to freeze
+  // the JS thread for a couple seconds and get the app killed. Waiting for
+  // things to settle instead of saving every single frame still saves the
+  // final position, just without doing it 60 times a second.
   useEffect(() => {
     if (!hasLoaded.current) return;
-    saveContent(state);
+    const timer = setTimeout(() => saveContent(state), 400);
+    return () => clearTimeout(timer);
   }, [state]);
 
   useEffect(() => {
@@ -79,10 +86,14 @@ export default function App() {
   // React updates per frame to trip "Maximum update depth exceeded". The
   // per-timeline `content` in `timelines` is instead refreshed at discrete
   // checkpoints (see `goToManager`), and persisted straight to storage here
-  // without touching React state.
+  // without touching React state — also debounced for the same reason as
+  // the saveContent effect above.
   useEffect(() => {
     if (!hasLoaded.current || !selectedTimelineId || timelines.length === 0) return;
-    saveTimelines(timelines.map((timeline) => (timeline.id === selectedTimelineId ? { ...timeline, content: state } : timeline)));
+    const timer = setTimeout(() => {
+      saveTimelines(timelines.map((timeline) => (timeline.id === selectedTimelineId ? { ...timeline, content: state } : timeline)));
+    }, 400);
+    return () => clearTimeout(timer);
   }, [state]);
 
   useEffect(() => {
