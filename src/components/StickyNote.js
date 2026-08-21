@@ -2,8 +2,18 @@ import { useEffect, useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { runOnJS, useSharedValue } from 'react-native-reanimated';
+import Svg, { Path } from 'react-native-svg';
 import ConnectHandle from './ConnectHandle';
 import { NOTE_WIDTH, NOTE_COLORS, DEFAULT_NOTE_HEIGHT, HANDLE_SIZE } from '../constants';
+
+function IconMove({ color, size = 13 }) {
+  return (
+    <Svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M12 3v18M3 12h18" />
+      <Path d="M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3" />
+    </Svg>
+  );
+}
 
 // `above` is only meaningful for event notes (tied to the timeline):
 // true = note sits above the line, false = below, undefined = a free
@@ -57,6 +67,25 @@ export default function StickyNote({
     .enabled(selected)
     .minDistance(4)
     .blocksExternalGesture(canvasGesture)
+    .onStart(() => {
+      dragStartX.value = x;
+      dragStartY.value = y;
+      runOnJS(onDragStart)();
+    })
+    .onUpdate((e) => {
+      const dx = e.translationX / scaleShared.value;
+      const dy = e.translationY / scaleShared.value;
+      runOnJS(onMove)(dragStartX.value + dx, dragStartY.value + dy);
+    });
+
+  // The corner move button always drags the block, selected or not — it's
+  // a dedicated grab handle, unlike the card body which only drags once
+  // the block is already selected (see notePan above).
+  const moveHandlePan = Gesture.Pan()
+    .blocksExternalGesture(canvasGesture)
+    .onBegin(() => {
+      runOnJS(onSelect)();
+    })
     .onStart(() => {
       dragStartX.value = x;
       dragStartY.value = y;
@@ -122,6 +151,12 @@ export default function StickyNote({
         </View>
       </GestureDetector>
 
+      <GestureDetector gesture={moveHandlePan}>
+        <View style={[styles.moveHandle, { backgroundColor: theme.surface, borderColor: theme.border }]} hitSlop={6}>
+          <IconMove color={theme.icon} />
+        </View>
+      </GestureDetector>
+
       {selected && !editing && (
         <View style={[styles.toolbar, { backgroundColor: theme.surface }]}>
           {NOTE_COLORS.map((c) => (
@@ -175,6 +210,17 @@ const styles = StyleSheet.create({
   },
   dragSurface: {
     minHeight: 60,
+  },
+  moveHandle: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   text: {
     fontSize: 14,
