@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
+import { Keyboard, View, Text, StyleSheet, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import StickyNote from './StickyNote';
@@ -37,6 +37,7 @@ export default function Board({
 }) {
   const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 });
   const [blockHeights, setBlockHeights] = useState({});
+  const [dateLabelHeights, setDateLabelHeights] = useState({});
   const viewedOnce = useRef(false);
   const { width } = useWindowDimensions();
   const compact = width < 360;
@@ -76,6 +77,10 @@ export default function Board({
     setBlockHeights((prev) => (prev[key] === height ? prev : { ...prev, [key]: height }));
   }
 
+  function measureDateLabel(id, height) {
+    setDateLabelHeights((prev) => (prev[id] === height ? prev : { ...prev, [id]: height }));
+  }
+
   function getBlockRect(ref) {
     if (ref.type === 'freeNote') {
       const n = content.freeNotes.find((x) => x.id === ref.id);
@@ -113,6 +118,11 @@ export default function Board({
 
   const handleBackgroundTap = useCallback(
     (screenX, screenY) => {
+      // A tap here is handled entirely by react-native-gesture-handler, which
+      // doesn't blur a focused TextInput elsewhere the way a normal touch
+      // would — without this the date/text field you were editing stays
+      // focused (cursor still blinking) even though you tapped away from it.
+      Keyboard.dismiss();
       if (tool === 'note' || tool === 'event') {
         const worldX = (screenX - translateX.value) / scale.value;
         const worldY = (screenY - translateY.value) / scale.value;
@@ -216,6 +226,7 @@ export default function Board({
             events={content.events}
             connections={content.connections}
             blockHeights={blockHeights}
+            dateLabelHeights={dateLabelHeights}
             getBlockRect={getBlockRect}
             selectedConnectionId={selected?.type === 'connection' ? selected.id : null}
             onSelectConnection={(id) => onSelect({ type: 'connection', id })}
@@ -250,6 +261,7 @@ export default function Board({
               onConnectRelease={handleConnectRelease}
               onCreateBlock={onCreateBlock}
               onMeasure={(h) => measureBlock('event', ev.id, h)}
+              onMeasureDate={(h) => measureDateLabel(ev.id, h)}
               theme={theme}
             />
           ))}

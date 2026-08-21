@@ -16,10 +16,40 @@ function boundsFor(x1, y1, x2, y2, padding) {
   return { left, top, width, height };
 }
 
+// MarkerShape is 18x18 and its container is translated by (-9,-9) to center
+// it on the timeline, so the date label (which always sits just below the
+// marker, regardless of which side the note itself is on) starts about 9px
+// past the timeline. A fallback height covers the first render, before its
+// real one lands from onLayout.
+const MARKER_HALF = 9;
+const DEFAULT_DATE_LABEL_HEIGHT = 15;
+const LABEL_GAP_PADDING = 3;
+
+// The label only ever crosses the marker→note line when the note is below
+// the timeline too (above, the line heads the opposite way) — this splits
+// that line around the label's box instead of running it behind the text.
+function belowLineSegments(x1, targetX, targetY, gapTop, gapBottom) {
+  const segments = [];
+  const topEndY = Math.min(gapTop, targetY);
+  if (topEndY > 0) {
+    const t = topEndY / targetY;
+    segments.push({ x1, y1: 0, x2: x1 + t * (targetX - x1), y2: topEndY });
+  }
+  if (targetY > gapBottom) {
+    const t = gapBottom / targetY;
+    segments.push({ x1: x1 + t * (targetX - x1), y1: gapBottom, x2: targetX, y2: targetY });
+  }
+  if (segments.length === 0) {
+    segments.push({ x1, y1: 0, x2: targetX, y2: targetY });
+  }
+  return segments;
+}
+
 export default function ConnectionsLayer({
   events,
   connections,
   blockHeights,
+  dateLabelHeights,
   getBlockRect,
   selectedConnectionId,
   onSelectConnection,
@@ -38,8 +68,18 @@ export default function ConnectionsLayer({
         const targetY = above ? Math.min(ev.note.y + h - 4, -1) : Math.max(ev.note.y + 4, 1);
         const targetX = ev.note.x + NOTE_WIDTH / 2;
         const x1 = ev.markerX;
-        const y1 = 0;
-        const b = boundsFor(x1, y1, targetX, targetY, 20);
+        const b = boundsFor(x1, 0, targetX, targetY, 20);
+
+        const segments = above
+          ? [{ x1, y1: 0, x2: targetX, y2: targetY }]
+          : belowLineSegments(
+              x1,
+              targetX,
+              targetY,
+              MARKER_HALF,
+              MARKER_HALF + (dateLabelHeights[ev.id] ?? DEFAULT_DATE_LABEL_HEIGHT) + LABEL_GAP_PADDING
+            );
+
         return (
           <Svg
             key={ev.id}
@@ -47,7 +87,9 @@ export default function ConnectionsLayer({
             style={{ position: 'absolute', left: b.left, top: b.top, width: b.width, height: b.height }}
             viewBox={`${b.left} ${b.top} ${b.width} ${b.height}`}
           >
-            <Line x1={x1} y1={y1} x2={targetX} y2={targetY} stroke="#7c8089" strokeWidth={2} />
+            {segments.map((seg, i) => (
+              <Line key={i} x1={seg.x1} y1={seg.y1} x2={seg.x2} y2={seg.y2} stroke="#7c8089" strokeWidth={2} />
+            ))}
           </Svg>
         );
       })}

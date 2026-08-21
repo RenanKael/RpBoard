@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
+import { Keyboard, View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { runOnJS, useSharedValue } from 'react-native-reanimated';
 import ConnectHandle from './ConnectHandle';
@@ -56,6 +56,11 @@ export default function StickyNote({
     .minDistance(4)
     .blocksExternalGesture(canvasGesture)
     .onBegin(() => {
+      // Gesture-handler taps don't blur a TextInput focused elsewhere the
+      // way a normal touch would, so without this a date/text field left
+      // open on another block keeps its cursor blinking after you've moved
+      // on to dragging this one.
+      runOnJS(Keyboard.dismiss)();
       runOnJS(onSelect)();
     })
     .onStart(() => {
@@ -80,6 +85,7 @@ export default function StickyNote({
   const singleTap = Gesture.Tap()
     .blocksExternalGesture(canvasGesture)
     .onEnd(() => {
+      runOnJS(Keyboard.dismiss)();
       runOnJS(onSelect)();
     });
 
