@@ -180,28 +180,39 @@ export default function EventItem({
 }
 
 const styles = StyleSheet.create({
+  // Fixed to exactly the icon's own size (18x18) so `translateX/Y: -9`
+  // truly centers it on `markerX` — the date label below used to share this
+  // box via `alignItems: 'center'`, but being wider than the icon it made
+  // the box shrink-to-fit to the LABEL's width instead, which silently
+  // dragged the icon (and everything anchored to `markerX`, like the
+  // connecting line) off-center. The label is now absolutely positioned
+  // and centered independently, so its width can no longer do that.
   marker: {
     position: 'absolute',
     top: 0,
-    alignItems: 'center',
+    width: 18,
+    height: 18,
     transform: [{ translateX: -9 }, { translateY: -9 }],
-    paddingHorizontal: 4,
   },
   markerSelected: {
     borderRadius: 4,
   },
   dateLabel: {
-    marginTop: 2,
+    position: 'absolute',
+    top: 20,
+    left: -26,
+    width: 70,
     fontSize: 11,
     color: '#45464c',
-    width: 70,
     textAlign: 'center',
   },
   dateInput: {
-    marginTop: 2,
+    position: 'absolute',
+    top: 20,
+    left: -26,
+    width: 70,
     fontSize: 11,
     color: '#45464c',
-    width: 70,
     textAlign: 'center',
     padding: 0,
   },
