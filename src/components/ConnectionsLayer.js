@@ -13,7 +13,19 @@ export default function ConnectionsLayer({
   onDeleteConnection,
 }) {
   return (
-    <Svg style={[StyleSheet.absoluteFill, { overflow: 'visible' }]} pointerEvents="box-none">
+    // Without an explicit viewBox, `overflow: visible` on Android doesn't
+    // actually let the SVG draw outside its own declared box — the native
+    // canvas is genuinely bounded to it, no matter the style. `world`'s own
+    // (0,0) sits right at the timeline, so lines to blocks above it (negative
+    // y) were being hard-clipped away. A viewBox spanning well above and
+    // below y=0 (matching the same oversized-canvas trick `timelineLine`
+    // uses horizontally) fixes that for real, with child coordinates
+    // unchanged since the viewBox keeps a 1:1 scale with world space.
+    <Svg
+      style={styles.svg}
+      viewBox="-100000 -4000 200000 8000"
+      pointerEvents="box-none"
+    >
       {events.map((ev) => {
         const h = blockHeights[`event:${ev.id}`] ?? DEFAULT_NOTE_HEIGHT;
         const above = ev.note.y < 0;
@@ -70,3 +82,13 @@ export default function ConnectionsLayer({
     </Svg>
   );
 }
+
+const styles = StyleSheet.create({
+  svg: {
+    position: 'absolute',
+    left: -100000,
+    top: -4000,
+    width: 200000,
+    height: 8000,
+  },
+});
