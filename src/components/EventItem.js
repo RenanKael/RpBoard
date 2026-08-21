@@ -75,6 +75,11 @@ export default function EventItem({
 
   const markerGesture = Gesture.Exclusive(dateDoubleTap, markerTap, markerPan);
 
+  // Wraps the toolbar's native buttons so the canvas pan/tap waits for
+  // them — otherwise tapping a shape or color could also pan or
+  // deselect through to the board underneath.
+  const markerToolbarGesture = Gesture.Native().blocksExternalGesture(canvasGesture);
+
   function commitDate() {
     setEditingDate(false);
     if (dateDraft !== event.dateLabel) onDateLabelCommit(dateDraft);
@@ -94,25 +99,27 @@ export default function EventItem({
           )}
 
           {selected && !editingDate && (
-            <View style={[styles.markerToolbar, { backgroundColor: theme.surface }]}>
-              {MARKER_SHAPES.map((shape) => (
-                <Pressable
-                  key={shape}
-                  style={[styles.shapeBtn, event.shape === shape && { backgroundColor: theme.activeBackground }]}
-                  onPress={() => onMarkerStyleChange({ shape, color: event.color })}
-                >
-                  <MarkerShape shape={shape} color={event.color} size={14} />
-                </Pressable>
-              ))}
-              <View style={styles.toolbarDivider} />
-              {MARKER_COLORS.map((c) => (
-                <Pressable
-                  key={c}
-                  style={[styles.swatch, { backgroundColor: c }]}
-                  onPress={() => onMarkerStyleChange({ shape: event.shape, color: c })}
-                />
-              ))}
-            </View>
+            <GestureDetector gesture={markerToolbarGesture}>
+              <View style={[styles.markerToolbar, { backgroundColor: theme.surface }]}>
+                {MARKER_SHAPES.map((shape) => (
+                  <Pressable
+                    key={shape}
+                    style={[styles.shapeBtn, event.shape === shape && { backgroundColor: theme.activeBackground }]}
+                    onPress={() => onMarkerStyleChange({ shape, color: event.color })}
+                  >
+                    <MarkerShape shape={shape} color={event.color} size={14} />
+                  </Pressable>
+                ))}
+                <View style={styles.toolbarDivider} />
+                {MARKER_COLORS.map((c) => (
+                  <Pressable
+                    key={c}
+                    style={[styles.swatch, { backgroundColor: c }]}
+                    onPress={() => onMarkerStyleChange({ shape: event.shape, color: c })}
+                  />
+                ))}
+              </View>
+            </GestureDetector>
           )}
         </View>
       </GestureDetector>

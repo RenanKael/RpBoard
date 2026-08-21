@@ -275,7 +275,15 @@ export default function Board({
           </View>
         )}
 
-        <ZoomControl translateX={translateX} translateY={translateY} scale={scale} viewportSize={viewportSize} onResetView={resetView} theme={theme} />
+        <ZoomControl
+          translateX={translateX}
+          translateY={translateY}
+          scale={scale}
+          viewportSize={viewportSize}
+          onResetView={resetView}
+          canvasGesture={canvasGesture}
+          theme={theme}
+        />
       </View>
     </GestureDetector>
   );

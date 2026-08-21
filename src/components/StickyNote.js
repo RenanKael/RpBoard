@@ -113,6 +113,11 @@ export default function StickyNote({
 
   const noteGesture = Gesture.Exclusive(doubleTap, singleTap, notePan);
 
+  // Wraps the toolbar's native buttons so the canvas pan/tap waits for
+  // them — otherwise tapping a swatch or delete could also pan or
+  // deselect through to the board underneath.
+  const toolbarGesture = Gesture.Native().blocksExternalGesture(canvasGesture);
+
   function commit() {
     setEditing(false);
     if (draft !== text) onTextCommit(draft);
@@ -158,14 +163,16 @@ export default function StickyNote({
       </GestureDetector>
 
       {selected && !editing && (
-        <View style={[styles.toolbar, { backgroundColor: theme.surface }]}>
-          {NOTE_COLORS.map((c) => (
-            <Pressable key={c} style={[styles.swatch, { backgroundColor: c }]} onPress={() => onColorChange(c)} />
-          ))}
-          <Pressable style={styles.deleteBtn} onPress={onDelete} accessibilityLabel="Excluir nota">
-            <Text style={[styles.deleteText, { color: theme.icon }]}>✕</Text>
-          </Pressable>
-        </View>
+        <GestureDetector gesture={toolbarGesture}>
+          <View style={[styles.toolbar, { backgroundColor: theme.surface }]}>
+            {NOTE_COLORS.map((c) => (
+              <Pressable key={c} style={[styles.swatch, { backgroundColor: c }]} onPress={() => onColorChange(c)} />
+            ))}
+            <Pressable style={styles.deleteBtn} onPress={onDelete} accessibilityLabel="Excluir nota">
+              <Text style={[styles.deleteText, { color: theme.icon }]}>✕</Text>
+            </Pressable>
+          </View>
+        </GestureDetector>
       )}
 
       <ConnectHandle

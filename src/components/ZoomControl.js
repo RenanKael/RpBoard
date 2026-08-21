@@ -1,11 +1,17 @@
 import { useState } from 'react';
 import { View, Pressable, Text, StyleSheet } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useAnimatedReaction, runOnJS } from 'react-native-reanimated';
 import { MIN_SCALE, MAX_SCALE } from '../constants';
 
-export default function ZoomControl({ translateX, translateY, scale, viewportSize, onResetView, theme }) {
+export default function ZoomControl({ translateX, translateY, scale, viewportSize, onResetView, canvasGesture, theme }) {
   const [percent, setPercent] = useState(100);
   const compact = viewportSize.width < 360 || viewportSize.height < 640;
+
+  // Wraps the buttons in the underlying native touch responder so the
+  // canvas pan/tap waits for it — otherwise a tap here could also pan or
+  // deselect through to the board underneath.
+  const controlsGesture = Gesture.Native().blocksExternalGesture(canvasGesture);
 
   useAnimatedReaction(
     () => Math.round(scale.value * 100),
@@ -26,17 +32,19 @@ export default function ZoomControl({ translateX, translateY, scale, viewportSiz
   }
 
   return (
-    <View style={[styles.control, { backgroundColor: theme.controlBackground }, compact && styles.controlCompact]}>
-      <Pressable style={[styles.button, compact && styles.buttonCompact]} onPress={() => zoomBy(1 / 1.2)}>
-        <Text style={[styles.buttonText, { color: theme.icon }, compact && styles.buttonTextCompact]}>−</Text>
-      </Pressable>
-      <Pressable style={[styles.resetButton, compact && styles.resetButtonCompact]} onPress={onResetView}>
-        <Text style={[styles.resetText, { color: theme.icon }, compact && styles.resetTextCompact]}>{percent}%</Text>
-      </Pressable>
-      <Pressable style={[styles.button, compact && styles.buttonCompact]} onPress={() => zoomBy(1.2)}>
-        <Text style={[styles.buttonText, { color: theme.icon }, compact && styles.buttonTextCompact]}>+</Text>
-      </Pressable>
-    </View>
+    <GestureDetector gesture={controlsGesture}>
+      <View style={[styles.control, { backgroundColor: theme.controlBackground }, compact && styles.controlCompact]}>
+        <Pressable style={[styles.button, compact && styles.buttonCompact]} onPress={() => zoomBy(1 / 1.2)}>
+          <Text style={[styles.buttonText, { color: theme.icon }, compact && styles.buttonTextCompact]}>−</Text>
+        </Pressable>
+        <Pressable style={[styles.resetButton, compact && styles.resetButtonCompact]} onPress={onResetView}>
+          <Text style={[styles.resetText, { color: theme.icon }, compact && styles.resetTextCompact]}>{percent}%</Text>
+        </Pressable>
+        <Pressable style={[styles.button, compact && styles.buttonCompact]} onPress={() => zoomBy(1.2)}>
+          <Text style={[styles.buttonText, { color: theme.icon }, compact && styles.buttonTextCompact]}>+</Text>
+        </Pressable>
+      </View>
+    </GestureDetector>
   );
 }
 
