@@ -17,9 +17,14 @@ export default function ConnectionsLayer({
       {events.map((ev) => {
         const h = blockHeights[`event:${ev.id}`] ?? DEFAULT_NOTE_HEIGHT;
         const above = ev.note.y < 0;
-        const targetY = above ? ev.note.y + h : ev.note.y;
+        // Clamped so the line always lands on the correct side of the
+        // timeline (never crosses it) and overlaps a few px into the block
+        // instead of stopping exactly at its edge — a height measurement
+        // that's slightly off would otherwise make the line collapse to
+        // nothing or fall just short of visibly touching the block.
+        const targetY = above ? Math.min(ev.note.y + h - 4, -1) : Math.max(ev.note.y + 4, 1);
         const targetX = ev.note.x + NOTE_WIDTH / 2;
-        return <Line key={ev.id} x1={ev.markerX} y1={0} x2={targetX} y2={targetY} stroke="#9aa0a6" strokeWidth={1.5} />;
+        return <Line key={ev.id} x1={ev.markerX} y1={0} x2={targetX} y2={targetY} stroke="#7c8089" strokeWidth={2} />;
       })}
 
       {connections.map((conn) => {
