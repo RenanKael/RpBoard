@@ -1,7 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STORAGE_KEY = 'rpboard-state-v1';
+<<<<<<< HEAD
 const PREFERENCES_KEY = 'rpboard-preferences-v1';
+=======
+const TIMELINES_KEY = 'rpboard-timelines-v1';
+>>>>>>> bdc627a (Feat Arthur:Adicionei a pagina de gerenciamento de timelines e pequena melhora visual)
 
 const EMPTY_CONTENT = { freeNotes: [], events: [], connections: [] };
 
@@ -28,6 +32,7 @@ export async function saveContent(state) {
   }
 }
 
+<<<<<<< HEAD
 export async function loadPreferences() {
   try {
     const raw = await AsyncStorage.getItem(PREFERENCES_KEY);
@@ -44,5 +49,36 @@ export async function savePreferences(preferences) {
     await AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
   } catch (err) {
     console.warn('Não foi possível salvar as preferências', err);
+=======
+export async function loadTimelines() {
+  try {
+    const raw = await AsyncStorage.getItem(TIMELINES_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.map((timeline) => ({
+          id: timeline.id ?? `timeline-${Date.now()}`,
+          name: timeline.name ?? 'Timeline sem nome',
+          content: timeline.content ?? EMPTY_CONTENT,
+        }));
+      }
+    }
+  } catch (err) {
+    console.warn('Não foi possível carregar as timelines salvas', err);
+  }
+
+  const legacyBoard = await loadContent();
+  return [
+    { id: 'timeline-campanha-1', name: 'Timeline campanha 1', content: legacyBoard },
+    { id: 'timeline-campanha-2', name: 'Timeline campanha 2', content: EMPTY_CONTENT },
+  ];
+}
+
+export async function saveTimelines(timelines) {
+  try {
+    await AsyncStorage.setItem(TIMELINES_KEY, JSON.stringify(timelines));
+  } catch (err) {
+    console.warn('Não foi possível salvar as timelines', err);
+>>>>>>> bdc627a (Feat Arthur:Adicionei a pagina de gerenciamento de timelines e pequena melhora visual)
   }
 }

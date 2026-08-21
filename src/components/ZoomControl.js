@@ -5,6 +5,7 @@ import { MIN_SCALE, MAX_SCALE } from '../constants';
 
 export default function ZoomControl({ translateX, translateY, scale, viewportSize, onResetView, theme }) {
   const [percent, setPercent] = useState(100);
+  const compact = viewportSize.width < 360 || viewportSize.height < 640;
 
   useAnimatedReaction(
     () => Math.round(scale.value * 100),
@@ -25,6 +26,7 @@ export default function ZoomControl({ translateX, translateY, scale, viewportSiz
   }
 
   return (
+<<<<<<< HEAD
     <View style={[styles.control, { backgroundColor: theme.controlBackground }]}>
       <Pressable style={styles.button} onPress={() => zoomBy(1 / 1.2)}>
         <Text style={[styles.buttonText, { color: theme.icon }]}>−</Text>
@@ -34,6 +36,17 @@ export default function ZoomControl({ translateX, translateY, scale, viewportSiz
       </Pressable>
       <Pressable style={styles.button} onPress={() => zoomBy(1.2)}>
         <Text style={[styles.buttonText, { color: theme.icon }]}>+</Text>
+=======
+    <View style={[styles.control, compact && styles.controlCompact]}>
+      <Pressable style={[styles.button, compact && styles.buttonCompact]} onPress={() => zoomBy(1 / 1.2)}>
+        <Text style={[styles.buttonText, compact && styles.buttonTextCompact]}>−</Text>
+      </Pressable>
+      <Pressable style={[styles.resetButton, compact && styles.resetButtonCompact]} onPress={onResetView}>
+        <Text style={[styles.resetText, compact && styles.resetTextCompact]}>{percent}%</Text>
+      </Pressable>
+      <Pressable style={[styles.button, compact && styles.buttonCompact]} onPress={() => zoomBy(1.2)}>
+        <Text style={[styles.buttonText, compact && styles.buttonTextCompact]}>+</Text>
+>>>>>>> bdc627a (Feat Arthur:Adicionei a pagina de gerenciamento de timelines e pequena melhora visual)
       </Pressable>
     </View>
   );
@@ -55,15 +68,26 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 4,
   },
+  controlCompact: {
+    right: 10,
+    bottom: 10,
+  },
   button: {
     width: 36,
     height: 36,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  buttonCompact: {
+    width: 32,
+    height: 32,
+  },
   buttonText: {
     fontSize: 18,
     color: '#45464c',
+  },
+  buttonTextCompact: {
+    fontSize: 16,
   },
   resetButton: {
     paddingHorizontal: 10,
@@ -71,8 +95,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  resetButtonCompact: {
+    height: 32,
+    paddingHorizontal: 8,
+  },
   resetText: {
     fontSize: 12,
     color: '#45464c',
+  },
+  resetTextCompact: {
+    fontSize: 11,
   },
 });

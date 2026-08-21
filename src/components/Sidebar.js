@@ -1,44 +1,44 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import Svg, { Path, Rect, Line, Circle } from 'react-native-svg';
 
-function IconSelect({ color }) {
+function IconSelect({ color, size = 20 }) {
   return (
-    <Svg viewBox="0 0 24 24" width={20} height={20} fill="none" stroke={color} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+    <Svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke={color} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M5 3l6.5 16 2-6.5L20 10.5z" />
     </Svg>
   );
 }
 
-function IconNote({ color }) {
+function IconNote({ color, size = 20 }) {
   return (
-    <Svg viewBox="0 0 24 24" width={20} height={20} fill="none" stroke={color} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+    <Svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke={color} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
       <Rect x={4} y={4} width={16} height={16} rx={1.5} />
       <Path d="M8 9.5h8M8 13.5h5" />
     </Svg>
   );
 }
 
-function IconEvent({ color }) {
+function IconEvent({ color, size = 20 }) {
   return (
-    <Svg viewBox="0 0 24 24" width={20} height={20} fill="none" stroke={color} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+    <Svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke={color} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
       <Line x1={4} y1={12} x2={20} y2={12} />
       <Path d="M12 4.5l3 7.5-3 7.5-3-7.5z" />
     </Svg>
   );
 }
 
-function IconUndo({ color }) {
+function IconUndo({ color, size = 18 }) {
   return (
-    <Svg viewBox="0 0 24 24" width={18} height={18} fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+    <Svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M7 7H4V4" />
       <Path d="M4 7c2-2.5 5-4 8.5-4A9 9 0 1 1 4.5 17" />
     </Svg>
   );
 }
 
-function IconRedo({ color }) {
+function IconRedo({ color, size = 18 }) {
   return (
-    <Svg viewBox="0 0 24 24" width={18} height={18} fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+    <Svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M17 7h3V4" />
       <Path d="M20 7c-2-2.5-5-4-8.5-4A9 9 0 1 0 19.5 17" />
     </Svg>
@@ -64,23 +64,50 @@ const ACTIVE_COLOR = '#4262ff';
 const IDLE_COLOR = '#45464c';
 const DISABLED_COLOR = '#c7c7cc';
 
+<<<<<<< HEAD
 export default function Sidebar({ tool, onToolChange, onUndo, onRedo, canUndo, canRedo, translations, theme, onSettings }) {
   return (
     <View style={[styles.sidebar, { backgroundColor: theme.surface, borderRightColor: theme.border }]}>
       <View style={styles.logo}>
         <Text style={styles.logoText}>RP</Text>
+=======
+export default function Sidebar({ tool, compact = false, sidebarWidth = 64, onToolChange, onUndo, onRedo, canUndo, canRedo }) {
+  const iconSize = compact ? 18 : 20;
+  const buttonSize = compact ? 34 : 40;
+  const logoSize = compact ? 32 : 36;
+
+  return (
+    <View style={[styles.sidebar, { width: sidebarWidth }, compact && styles.sidebarCompact]}>
+      <View style={[styles.logo, { width: logoSize, height: logoSize }, compact && styles.logoCompact]}>
+        <Text style={[styles.logoText, compact && styles.logoTextCompact]}>RP</Text>
+>>>>>>> bdc627a (Feat Arthur:Adicionei a pagina de gerenciamento de timelines e pequena melhora visual)
       </View>
 
-      <View style={styles.tools}>
+      <View style={[styles.tools, compact && styles.toolsCompact]}>
         {TOOLS.map(({ id, Icon }) => (
+<<<<<<< HEAD
           <Pressable key={id} style={[styles.btn, tool === id && { backgroundColor: theme.activeBackground }]} onPress={() => onToolChange(id)} accessibilityLabel={translations[id === 'select' ? 'selectTool' : `${id}Tool`]}>
             <Icon color={tool === id ? theme.activeText : theme.icon} />
+=======
+          <Pressable
+            key={id}
+            style={[
+              styles.btn,
+              { width: buttonSize, height: buttonSize },
+              tool === id && styles.btnActive,
+              compact && styles.btnCompact,
+            ]}
+            onPress={() => onToolChange(id)}
+          >
+            <Icon color={tool === id ? ACTIVE_COLOR : IDLE_COLOR} size={iconSize} />
+>>>>>>> bdc627a (Feat Arthur:Adicionei a pagina de gerenciamento de timelines e pequena melhora visual)
           </Pressable>
         ))}
       </View>
 
       <View style={styles.spacer} />
 
+<<<<<<< HEAD
       <View style={styles.tools}>
         <Pressable style={styles.btn} onPress={onUndo} disabled={!canUndo}>
           <IconUndo color={canUndo ? theme.icon : theme.disabled} />
@@ -90,6 +117,14 @@ export default function Sidebar({ tool, onToolChange, onUndo, onRedo, canUndo, c
         </Pressable>
         <Pressable style={styles.btn} onPress={onSettings} accessibilityLabel={translations.openSettings}>
           <IconSettings color={theme.icon} />
+=======
+      <View style={[styles.tools, compact && styles.toolsCompact]}>
+        <Pressable style={[styles.btn, { width: buttonSize, height: buttonSize }, compact && styles.btnCompact]} onPress={onUndo} disabled={!canUndo}>
+          <IconUndo color={canUndo ? IDLE_COLOR : DISABLED_COLOR} size={compact ? 16 : 18} />
+        </Pressable>
+        <Pressable style={[styles.btn, { width: buttonSize, height: buttonSize }, compact && styles.btnCompact]} onPress={onRedo} disabled={!canRedo}>
+          <IconRedo color={canRedo ? IDLE_COLOR : DISABLED_COLOR} size={compact ? 16 : 18} />
+>>>>>>> bdc627a (Feat Arthur:Adicionei a pagina de gerenciamento de timelines e pequena melhora visual)
         </Pressable>
       </View>
     </View>
@@ -98,40 +133,50 @@ export default function Sidebar({ tool, onToolChange, onUndo, onRedo, canUndo, c
 
 const styles = StyleSheet.create({
   sidebar: {
-    width: 64,
     backgroundColor: '#fff',
     borderRightWidth: 1,
     borderRightColor: '#e5e4e7',
     paddingVertical: 12,
     alignItems: 'center',
   },
+  sidebarCompact: {
+    paddingVertical: 10,
+  },
   logo: {
-    width: 36,
-    height: 36,
     borderRadius: 10,
     backgroundColor: '#4262ff',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
   },
+  logoCompact: {
+    marginBottom: 6,
+  },
   logoText: {
     color: '#fff',
     fontWeight: '700',
     fontSize: 13,
   },
+  logoTextCompact: {
+    fontSize: 12,
+  },
   tools: {
     gap: 6,
+  },
+  toolsCompact: {
+    gap: 4,
   },
   spacer: {
     flex: 1,
   },
   btn: {
-    width: 40,
-    height: 40,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 6,
+  },
+  btnCompact: {
+    marginTop: 4,
   },
   btnActive: {
     backgroundColor: '#ebefff',

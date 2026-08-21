@@ -5,7 +5,11 @@
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
     "babel-preset-expo": "~54.0.10",
+<<<<<<< HEAD
     "expo": "~54.0.37",
+=======
+    "expo": "^54.0.36",
+>>>>>>> bdc627a (Feat Arthur:Adicionei a pagina de gerenciamento de timelines e pequena melhora visual)
     "expo-status-bar": "~3.0.9",
     "react": "19.1.0",
     "react-native": "0.81.5",

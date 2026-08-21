@@ -1,11 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Pressable, Text, useWindowDimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import Sidebar from './src/components/Sidebar';
 import Board from './src/components/Board';
+import TimelineManager from './src/components/TimelineManager';
 import { useHistory } from './src/hooks/useHistory';
+<<<<<<< HEAD
 import { loadContent, loadPreferences, saveContent, savePreferences } from './src/storage';
+=======
+import { loadContent, saveContent, loadTimelines, saveTimelines } from './src/storage';
+>>>>>>> bdc627a (Feat Arthur:Adicionei a pagina de gerenciamento de timelines e pequena melhora visual)
 import { uid } from './src/utils/uid';
 import { MARKER_PRESETS } from './src/constants';
 import Settings from './src/components/Settings';
@@ -16,6 +22,9 @@ const EMPTY_CONTENT = { freeNotes: [], events: [], connections: [] };
 
 export default function App() {
   const [loading, setLoading] = useState(true);
+  const [screen, setScreen] = useState('manager');
+  const [timelines, setTimelines] = useState([]);
+  const [selectedTimelineId, setSelectedTimelineId] = useState(null);
   const { state, set, commit, snapshot, undo, redo, canUndo, canRedo } = useHistory(EMPTY_CONTENT);
   const [tool, setTool] = useState('select');
   const [selected, setSelected] = useState(null);
@@ -24,14 +33,43 @@ export default function App() {
   const [settingsVisible, setSettingsVisible] = useState(false);
   const hasLoaded = useRef(false);
 
+  const { width } = useWindowDimensions();
+  const compact = width < 360;
+  const sidebarWidth = compact ? 56 : width < 420 ? 64 : 72;
+
+  const activeTimeline = timelines.find((timeline) => timeline.id === selectedTimelineId) ?? null;
+
   useEffect(() => {
+<<<<<<< HEAD
     Promise.all([loadContent(), loadPreferences()]).then(([loadedContent, preferences]) => {
       set(() => loadedContent);
       setLanguage(normalizeLanguage(preferences.language));
       setDarkMode(preferences.darkMode);
+=======
+    let isMounted = true;
+
+    async function loadInitialState() {
+      const loadedTimelines = await loadTimelines();
+      if (!isMounted) return;
+
+      const fallbackTimeline = loadedTimelines[0] ?? {
+        id: 'timeline-campanha-1',
+        name: 'Timeline campanha 1',
+        content: await loadContent(),
+      };
+
+      setTimelines(loadedTimelines.length ? loadedTimelines : [fallbackTimeline]);
+      setSelectedTimelineId(fallbackTimeline.id);
+      set(() => fallbackTimeline.content ?? EMPTY_CONTENT);
+>>>>>>> bdc627a (Feat Arthur:Adicionei a pagina de gerenciamento de timelines e pequena melhora visual)
       hasLoaded.current = true;
       setLoading(false);
-    });
+    }
+
+    loadInitialState();
+    return () => {
+      isMounted = false;
+    };
   }, [set]);
 
   useEffect(() => {
@@ -40,12 +78,56 @@ export default function App() {
   }, [state]);
 
   useEffect(() => {
+<<<<<<< HEAD
     if (!hasLoaded.current) return;
     savePreferences({ language, darkMode });
   }, [language, darkMode]);
 
   const translations = getTranslations(language);
   const theme = getTheme(darkMode);
+=======
+    if (!selectedTimelineId) return;
+    setTimelines((prev) =>
+      prev.map((timeline) => (timeline.id === selectedTimelineId ? { ...timeline, content: state } : timeline))
+    );
+  }, [state, selectedTimelineId]);
+
+  useEffect(() => {
+    if (!hasLoaded.current || timelines.length === 0) return;
+    saveTimelines(timelines);
+  }, [timelines]);
+
+  const openTimeline = useCallback(
+    (id) => {
+      const timeline = timelines.find((item) => item.id === id);
+      if (!timeline) return;
+
+      setSelectedTimelineId(id);
+      setSelected(null);
+      setTool('select');
+      set(() => timeline.content ?? EMPTY_CONTENT);
+      setScreen('board');
+    },
+    [set, timelines]
+  );
+
+  const createTimeline = useCallback(() => {
+    const nextNumber = timelines.length + 1;
+    const id = uid();
+    const newTimeline = {
+      id,
+      name: `Timeline campanha ${nextNumber}`,
+      content: EMPTY_CONTENT,
+    };
+
+    setTimelines((prev) => [...prev, newTimeline]);
+    setSelectedTimelineId(id);
+    setSelected(null);
+    setTool('select');
+    set(() => EMPTY_CONTENT);
+    setScreen('board');
+  }, [set, timelines.length]);
+>>>>>>> bdc627a (Feat Arthur:Adicionei a pagina de gerenciamento de timelines e pequena melhora visual)
 
   const addFreeNote = useCallback(
     (pos) => {
@@ -216,6 +298,7 @@ export default function App() {
   }
 
   return (
+<<<<<<< HEAD
     <GestureHandlerRootView style={styles.app}>
       <StatusBar style={darkMode ? 'light' : 'dark'} />
       <Sidebar
@@ -265,18 +348,118 @@ export default function App() {
         onClose={() => setSettingsVisible(false)}
       />
     </GestureHandlerRootView>
+=======
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+      <GestureHandlerRootView style={styles.app}>
+        <StatusBar style="dark" />
+
+        {screen === 'manager' ? (
+          <TimelineManager timelines={timelines} onSelect={openTimeline} onCreateTimeline={createTimeline} />
+        ) : (
+          <>
+            <Sidebar
+              tool={tool}
+              compact={compact}
+              sidebarWidth={sidebarWidth}
+              onToolChange={setTool}
+              onUndo={undo}
+              onRedo={redo}
+              canUndo={canUndo}
+              canRedo={canRedo}
+            />
+
+            <View style={styles.boardPane}>
+              <View style={styles.boardHeader}>
+                <Pressable style={styles.backButton} onPress={() => setScreen('manager')}>
+                  <Text style={styles.backButtonText}>Gerenciar</Text>
+                </Pressable>
+                <Text style={styles.boardTitle}>{activeTimeline?.name ?? 'Timeline'}</Text>
+              </View>
+
+              <Board
+                content={state}
+                tool={tool}
+                setTool={setTool}
+                selected={selected}
+                onSelect={setSelected}
+                onAddFreeNote={addFreeNote}
+                onAddEvent={addEvent}
+                onMoveFreeNote={moveFreeNote}
+                onMoveEventMarker={moveEventMarker}
+                onMoveEventNote={moveEventNote}
+                onSnapshot={snapshot}
+                onUpdateFreeNoteText={updateFreeNoteText}
+                onUpdateFreeNoteColor={updateFreeNoteColor}
+                onDeleteFreeNote={deleteFreeNote}
+                onUpdateEventText={updateEventText}
+                onUpdateEventDateLabel={updateEventDateLabel}
+                onUpdateEventNoteColor={updateEventNoteColor}
+                onUpdateEventMarkerStyle={updateEventMarkerStyle}
+                onDeleteEvent={deleteEvent}
+                onAddConnection={addConnection}
+                onDeleteConnection={deleteConnection}
+              />
+            </View>
+          </>
+        )}
+      </GestureHandlerRootView>
+    </SafeAreaView>
+>>>>>>> bdc627a (Feat Arthur:Adicionei a pagina de gerenciamento de timelines e pequena melhora visual)
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   app: {
     flex: 1,
     flexDirection: 'row',
+    backgroundColor: '#f5f5f7',
   },
   loading: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#fff',
+  },
+  boardPane: {
+    flex: 1,
+    backgroundColor: '#f5f5f7',
+  },
+  boardHeader: {
+    position: 'absolute',
+    top: 12,
+    left: 16,
+    right: 16,
+    zIndex: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  backButton: {
+    backgroundColor: '#fffaf5',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#e9ddd1',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  backButtonText: {
+    color: '#2d2724',
+    fontWeight: '700',
+    fontSize: 12,
+  },
+  boardTitle: {
+    color: '#2d2724',
+    fontWeight: '700',
+    fontSize: 14,
+    flexShrink: 1,
   },
 });

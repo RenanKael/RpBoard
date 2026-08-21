@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import StickyNote from './StickyNote';
@@ -37,6 +37,8 @@ export default function Board({
   const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 });
   const [blockHeights, setBlockHeights] = useState({});
   const viewedOnce = useRef(false);
+  const { width } = useWindowDimensions();
+  const compact = width < 360;
 
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
@@ -264,7 +266,13 @@ export default function Board({
 
         {isEmpty && (
           <View style={styles.emptyHint} pointerEvents="none">
+<<<<<<< HEAD
             <Text style={[styles.emptyHintText, { color: theme.hint }]}>{translations.boardHint}</Text>
+=======
+            <Text style={[styles.emptyHintText, compact && styles.emptyHintTextCompact]}>
+              Use a barra lateral para adicionar uma nota ou um evento na linha do tempo.
+            </Text>
+>>>>>>> bdc627a (Feat Arthur:Adicionei a pagina de gerenciamento de timelines e pequena melhora visual)
           </View>
         )}
 
@@ -311,5 +319,8 @@ const styles = StyleSheet.create({
     color: '#9a9aa2',
     fontSize: 15,
     textAlign: 'center',
+  },
+  emptyHintTextCompact: {
+    fontSize: 13,
   },
 });
