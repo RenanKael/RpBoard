@@ -37,7 +37,6 @@ export default function Board({
 }) {
   const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 });
   const [blockHeights, setBlockHeights] = useState({});
-  const [dateLabelHeights, setDateLabelHeights] = useState({});
   const viewedOnce = useRef(false);
   const { width } = useWindowDimensions();
   const compact = width < 360;
@@ -75,10 +74,6 @@ export default function Board({
   function measureBlock(type, id, height) {
     const key = `${type}:${id}`;
     setBlockHeights((prev) => (prev[key] === height ? prev : { ...prev, [key]: height }));
-  }
-
-  function measureDateLabel(id, height) {
-    setDateLabelHeights((prev) => (prev[id] === height ? prev : { ...prev, [id]: height }));
   }
 
   function getBlockRect(ref) {
@@ -226,7 +221,6 @@ export default function Board({
             events={content.events}
             connections={content.connections}
             blockHeights={blockHeights}
-            dateLabelHeights={dateLabelHeights}
             getBlockRect={getBlockRect}
             selectedConnectionId={selected?.type === 'connection' ? selected.id : null}
             onSelectConnection={(id) => onSelect({ type: 'connection', id })}
@@ -261,7 +255,6 @@ export default function Board({
               onConnectRelease={handleConnectRelease}
               onCreateBlock={onCreateBlock}
               onMeasure={(h) => measureBlock('event', ev.id, h)}
-              onMeasureDate={(h) => measureDateLabel(ev.id, h)}
               theme={theme}
             />
           ))}

@@ -32,7 +32,6 @@ export default function EventItem({
   onConnectRelease,
   onCreateBlock,
   onMeasure,
-  onMeasureDate,
   theme,
 }) {
   const [editingDate, setEditingDate] = useState(false);
@@ -107,15 +106,9 @@ export default function EventItem({
               value={dateDraft}
               onChangeText={setDateDraft}
               onBlur={commitDate}
-              onLayout={(e) => onMeasureDate?.(e.nativeEvent.layout.height)}
             />
           ) : (
-            <Text
-              style={[styles.dateLabel, { color: theme.text }]}
-              onLayout={(e) => onMeasureDate?.(e.nativeEvent.layout.height)}
-            >
-              {event.dateLabel}
-            </Text>
+            <Text style={[styles.dateLabel, { color: theme.text }]}>{event.dateLabel}</Text>
           )}
 
           {selected && !editingDate && (
