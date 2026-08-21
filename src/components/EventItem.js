@@ -43,12 +43,13 @@ export default function EventItem({
 
   const dragStartX = useSharedValue(event.markerX);
 
+  // Only the already-selected marker hijacks the drag from the canvas —
+  // dragging over an unselected marker (or anywhere else) pans the canvas
+  // instead. Tap-to-select first, then drag to move.
   const markerPan = Gesture.Pan()
+    .enabled(selected)
     .minDistance(4)
     .blocksExternalGesture(canvasGesture)
-    .onBegin(() => {
-      runOnJS(onSelect)();
-    })
     .onStart(() => {
       dragStartX.value = event.markerX;
       runOnJS(onDragStart)();

@@ -50,12 +50,13 @@ export default function StickyNote({
   const dragStartX = useSharedValue(x);
   const dragStartY = useSharedValue(y);
 
+  // Only the already-selected block hijacks the drag from the canvas —
+  // dragging over an unselected block (or anywhere else) pans the canvas
+  // instead. Tap-to-select first, then drag to move.
   const notePan = Gesture.Pan()
+    .enabled(selected)
     .minDistance(4)
     .blocksExternalGesture(canvasGesture)
-    .onBegin(() => {
-      runOnJS(onSelect)();
-    })
     .onStart(() => {
       dragStartX.value = x;
       dragStartY.value = y;
