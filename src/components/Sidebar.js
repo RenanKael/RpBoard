@@ -1,5 +1,5 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import Svg, { Path, Rect, Line } from 'react-native-svg';
+import Svg, { Path, Rect, Line, Circle } from 'react-native-svg';
 
 function IconSelect({ color }) {
   return (
@@ -45,6 +45,15 @@ function IconRedo({ color }) {
   );
 }
 
+function IconSettings({ color }) {
+  return (
+    <Svg viewBox="0 0 24 24" width={19} height={19} fill="none" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+      <Circle cx={12} cy={12} r={3} />
+      <Path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-1.7 1.7-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V20h-2.4v-.2a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.88.34l-.06.06-1.7-1.7.06-.06A1.7 1.7 0 0 0 8.46 15 1.7 1.7 0 0 0 6.9 14H6.7v-2.4h.2a1.7 1.7 0 0 0 1.56-1.03 1.7 1.7 0 0 0-.34-1.88l-.06-.06 1.7-1.7.06.06a1.7 1.7 0 0 0 1.88.34A1.7 1.7 0 0 0 12.73 5.8V5.6h2.4v.2a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06 1.7 1.7-.06.06a1.7 1.7 0 0 0-.34 1.88A1.7 1.7 0 0 0 20.96 11h.2v2.4h-.2A1.7 1.7 0 0 0 19.4 15z" />
+    </Svg>
+  );
+}
+
 const TOOLS = [
   { id: 'select', Icon: IconSelect },
   { id: 'note', Icon: IconNote },
@@ -55,17 +64,17 @@ const ACTIVE_COLOR = '#4262ff';
 const IDLE_COLOR = '#45464c';
 const DISABLED_COLOR = '#c7c7cc';
 
-export default function Sidebar({ tool, onToolChange, onUndo, onRedo, canUndo, canRedo }) {
+export default function Sidebar({ tool, onToolChange, onUndo, onRedo, canUndo, canRedo, translations, theme, onSettings }) {
   return (
-    <View style={styles.sidebar}>
+    <View style={[styles.sidebar, { backgroundColor: theme.surface, borderRightColor: theme.border }]}>
       <View style={styles.logo}>
         <Text style={styles.logoText}>RP</Text>
       </View>
 
       <View style={styles.tools}>
         {TOOLS.map(({ id, Icon }) => (
-          <Pressable key={id} style={[styles.btn, tool === id && styles.btnActive]} onPress={() => onToolChange(id)}>
-            <Icon color={tool === id ? ACTIVE_COLOR : IDLE_COLOR} />
+          <Pressable key={id} style={[styles.btn, tool === id && { backgroundColor: theme.activeBackground }]} onPress={() => onToolChange(id)} accessibilityLabel={translations[id === 'select' ? 'selectTool' : `${id}Tool`]}>
+            <Icon color={tool === id ? theme.activeText : theme.icon} />
           </Pressable>
         ))}
       </View>
@@ -74,10 +83,13 @@ export default function Sidebar({ tool, onToolChange, onUndo, onRedo, canUndo, c
 
       <View style={styles.tools}>
         <Pressable style={styles.btn} onPress={onUndo} disabled={!canUndo}>
-          <IconUndo color={canUndo ? IDLE_COLOR : DISABLED_COLOR} />
+          <IconUndo color={canUndo ? theme.icon : theme.disabled} />
         </Pressable>
         <Pressable style={styles.btn} onPress={onRedo} disabled={!canRedo}>
-          <IconRedo color={canRedo ? IDLE_COLOR : DISABLED_COLOR} />
+          <IconRedo color={canRedo ? theme.icon : theme.disabled} />
+        </Pressable>
+        <Pressable style={styles.btn} onPress={onSettings} accessibilityLabel={translations.openSettings}>
+          <IconSettings color={theme.icon} />
         </Pressable>
       </View>
     </View>

@@ -31,6 +31,7 @@ export default function EventItem({
   onDelete,
   onConnectRelease,
   onMeasure,
+  theme,
 }) {
   const [editingDate, setEditingDate] = useState(false);
   const [dateDraft, setDateDraft] = useState(event.dateLabel);
@@ -80,15 +81,15 @@ export default function EventItem({
           {editingDate ? (
             <TextInput autoFocus style={styles.dateInput} value={dateDraft} onChangeText={setDateDraft} onBlur={commitDate} />
           ) : (
-            <Text style={styles.dateLabel}>{event.dateLabel}</Text>
+            <Text style={[styles.dateLabel, { color: theme.text }]}>{event.dateLabel}</Text>
           )}
 
           {selected && !editingDate && (
-            <View style={styles.markerToolbar}>
+            <View style={[styles.markerToolbar, { backgroundColor: theme.surface }]}>
               {MARKER_SHAPES.map((shape) => (
                 <Pressable
                   key={shape}
-                  style={[styles.shapeBtn, event.shape === shape && styles.shapeBtnActive]}
+                  style={[styles.shapeBtn, event.shape === shape && { backgroundColor: theme.activeBackground }]}
                   onPress={() => onMarkerStyleChange({ shape, color: event.color })}
                 >
                   <MarkerShape shape={shape} color={event.color} size={14} />
@@ -135,6 +136,7 @@ export default function EventItem({
         onDelete={onDelete}
         onConnectRelease={onConnectRelease}
         onMeasure={onMeasure}
+        theme={theme}
       />
     </>
   );

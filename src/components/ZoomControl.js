@@ -3,7 +3,7 @@ import { View, Pressable, Text, StyleSheet } from 'react-native';
 import { useAnimatedReaction, runOnJS } from 'react-native-reanimated';
 import { MIN_SCALE, MAX_SCALE } from '../constants';
 
-export default function ZoomControl({ translateX, translateY, scale, viewportSize, onResetView }) {
+export default function ZoomControl({ translateX, translateY, scale, viewportSize, onResetView, theme }) {
   const [percent, setPercent] = useState(100);
 
   useAnimatedReaction(
@@ -25,15 +25,15 @@ export default function ZoomControl({ translateX, translateY, scale, viewportSiz
   }
 
   return (
-    <View style={styles.control}>
+    <View style={[styles.control, { backgroundColor: theme.controlBackground }]}>
       <Pressable style={styles.button} onPress={() => zoomBy(1 / 1.2)}>
-        <Text style={styles.buttonText}>−</Text>
+        <Text style={[styles.buttonText, { color: theme.icon }]}>−</Text>
       </Pressable>
       <Pressable style={styles.resetButton} onPress={onResetView}>
-        <Text style={styles.resetText}>{percent}%</Text>
+        <Text style={[styles.resetText, { color: theme.icon }]}>{percent}%</Text>
       </Pressable>
       <Pressable style={styles.button} onPress={() => zoomBy(1.2)}>
-        <Text style={styles.buttonText}>+</Text>
+        <Text style={[styles.buttonText, { color: theme.icon }]}>+</Text>
       </Pressable>
     </View>
   );

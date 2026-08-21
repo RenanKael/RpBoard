@@ -23,6 +23,7 @@ export default function ConnectHandle({
   connectCurrentScreenY,
   onRelease,
   style,
+  theme,
 }) {
   // `absoluteX/Y` are window-relative (this handle is nested deep inside
   // the transformed world, so local view coordinates would be useless
@@ -57,7 +58,7 @@ export default function ConnectHandle({
 
   return (
     <GestureDetector gesture={pan}>
-      <View style={[styles.handle, style]} hitSlop={8}>
+      <View style={[styles.handle, style, { backgroundColor: theme.activeText }]} hitSlop={8}>
         <View style={styles.barHorizontal} />
         <View style={styles.barVertical} />
       </View>

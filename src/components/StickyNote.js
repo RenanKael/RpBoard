@@ -36,6 +36,7 @@ export default function StickyNote({
   onDelete,
   onConnectRelease,
   onMeasure,
+  theme,
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(text);
@@ -68,11 +69,18 @@ export default function StickyNote({
   const doubleTap = Gesture.Tap()
     .numberOfTaps(2)
     .maxDuration(280)
+    .blocksExternalGesture(canvasGesture)
     .onEnd(() => {
       runOnJS(setEditing)(true);
     });
 
-  const noteGesture = Gesture.Race(doubleTap, notePan);
+  const singleTap = Gesture.Tap()
+    .blocksExternalGesture(canvasGesture)
+    .onEnd(() => {
+      runOnJS(onSelect)();
+    });
+
+  const noteGesture = Gesture.Exclusive(doubleTap, singleTap, notePan);
 
   function commit() {
     setEditing(false);
@@ -101,7 +109,7 @@ export default function StickyNote({
             <TextInput
               autoFocus
               multiline
-              style={styles.input}
+              style={[styles.input, { color: theme.text }]}
               value={draft}
               onChangeText={setDraft}
               onBlur={commit}
@@ -113,12 +121,12 @@ export default function StickyNote({
       </GestureDetector>
 
       {selected && !editing && (
-        <View style={styles.toolbar}>
+        <View style={[styles.toolbar, { backgroundColor: theme.surface }]}>
           {NOTE_COLORS.map((c) => (
             <Pressable key={c} style={[styles.swatch, { backgroundColor: c }]} onPress={() => onColorChange(c)} />
           ))}
-          <Pressable style={styles.deleteBtn} onPress={onDelete}>
-            <Text style={styles.deleteText}>✕</Text>
+          <Pressable style={styles.deleteBtn} onPress={onDelete} accessibilityLabel="Excluir nota">
+            <Text style={[styles.deleteText, { color: theme.icon }]}>✕</Text>
           </Pressable>
         </View>
       )}
@@ -139,6 +147,7 @@ export default function StickyNote({
         connectCurrentScreenY={connectCurrentScreenY}
         onRelease={onConnectRelease}
         style={handleStyle}
+        theme={theme}
       />
     </View>
   );

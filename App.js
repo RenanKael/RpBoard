@@ -5,9 +5,12 @@ import { StatusBar } from 'expo-status-bar';
 import Sidebar from './src/components/Sidebar';
 import Board from './src/components/Board';
 import { useHistory } from './src/hooks/useHistory';
-import { loadContent, saveContent } from './src/storage';
+import { loadContent, loadPreferences, saveContent, savePreferences } from './src/storage';
 import { uid } from './src/utils/uid';
 import { MARKER_PRESETS } from './src/constants';
+import Settings from './src/components/Settings';
+import { getTranslations } from './src/i18n';
+import { getTheme } from './src/theme';
 
 const EMPTY_CONTENT = { freeNotes: [], events: [], connections: [] };
 
@@ -16,11 +19,16 @@ export default function App() {
   const { state, set, commit, snapshot, undo, redo, canUndo, canRedo } = useHistory(EMPTY_CONTENT);
   const [tool, setTool] = useState('select');
   const [selected, setSelected] = useState(null);
+  const [language, setLanguage] = useState('pt-BR');
+  const [darkMode, setDarkMode] = useState(false);
+  const [settingsVisible, setSettingsVisible] = useState(false);
   const hasLoaded = useRef(false);
 
   useEffect(() => {
-    loadContent().then((loaded) => {
-      set(() => loaded);
+    Promise.all([loadContent(), loadPreferences()]).then(([loadedContent, preferences]) => {
+      set(() => loadedContent);
+      setLanguage(preferences.language);
+      setDarkMode(preferences.darkMode);
       hasLoaded.current = true;
       setLoading(false);
     });
@@ -30,6 +38,14 @@ export default function App() {
     if (!hasLoaded.current) return;
     saveContent(state);
   }, [state]);
+
+  useEffect(() => {
+    if (!hasLoaded.current) return;
+    savePreferences({ language, darkMode });
+  }, [language, darkMode]);
+
+  const translations = getTranslations(language);
+  const theme = getTheme(darkMode);
 
   const addFreeNote = useCallback(
     (pos) => {
@@ -201,8 +217,18 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={styles.app}>
-      <StatusBar style="dark" />
-      <Sidebar tool={tool} onToolChange={setTool} onUndo={undo} onRedo={redo} canUndo={canUndo} canRedo={canRedo} />
+      <StatusBar style={darkMode ? 'light' : 'dark'} />
+      <Sidebar
+        tool={tool}
+        onToolChange={setTool}
+        onUndo={undo}
+        onRedo={redo}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        translations={translations}
+        theme={theme}
+        onSettings={() => setSettingsVisible(true)}
+      />
       <Board
         content={state}
         tool={tool}
@@ -225,6 +251,18 @@ export default function App() {
         onDeleteEvent={deleteEvent}
         onAddConnection={addConnection}
         onDeleteConnection={deleteConnection}
+        translations={translations}
+        theme={theme}
+      />
+      <Settings
+        visible={settingsVisible}
+        language={language}
+        translations={translations}
+        onLanguageChange={setLanguage}
+        darkMode={darkMode}
+        onDarkModeChange={setDarkMode}
+        theme={theme}
+        onClose={() => setSettingsVisible(false)}
       />
     </GestureHandlerRootView>
   );

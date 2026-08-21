@@ -31,6 +31,8 @@ export default function Board({
   onDeleteEvent,
   onAddConnection,
   onDeleteConnection,
+  translations,
+  theme,
 }) {
   const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 });
   const [blockHeights, setBlockHeights] = useState({});
@@ -162,7 +164,7 @@ export default function Board({
   return (
     <GestureDetector gesture={canvasGesture}>
       <View
-        style={styles.viewport}
+        style={[styles.viewport, { backgroundColor: theme.appBackground }]}
         onLayout={(e) => {
           const { x, y, width, height } = e.nativeEvent.layout;
           boardPageX.value = x;
@@ -214,6 +216,7 @@ export default function Board({
               onDelete={() => onDeleteEvent(ev.id)}
               onConnectRelease={handleConnectRelease}
               onMeasure={(h) => measureBlock('event', ev.id, h)}
+              theme={theme}
             />
           ))}
 
@@ -246,6 +249,7 @@ export default function Board({
               onDelete={() => onDeleteFreeNote(note.id)}
               onConnectRelease={handleConnectRelease}
               onMeasure={(h) => measureBlock('freeNote', note.id, h)}
+              theme={theme}
             />
           ))}
         </Animated.View>
@@ -260,11 +264,11 @@ export default function Board({
 
         {isEmpty && (
           <View style={styles.emptyHint} pointerEvents="none">
-            <Text style={styles.emptyHintText}>Use a barra lateral para adicionar uma nota ou um evento na linha do tempo.</Text>
+            <Text style={[styles.emptyHintText, { color: theme.hint }]}>{translations.boardHint}</Text>
           </View>
         )}
 
-        <ZoomControl translateX={translateX} translateY={translateY} scale={scale} viewportSize={viewportSize} onResetView={resetView} />
+        <ZoomControl translateX={translateX} translateY={translateY} scale={scale} viewportSize={viewportSize} onResetView={resetView} theme={theme} />
       </View>
     </GestureDetector>
   );
@@ -273,7 +277,6 @@ export default function Board({
 const styles = StyleSheet.create({
   viewport: {
     flex: 1,
-    backgroundColor: '#f5f5f7',
     overflow: 'hidden',
   },
   world: {
