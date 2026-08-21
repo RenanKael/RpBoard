@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
@@ -111,52 +111,75 @@ export default function Board({
     onAddConnection(source, hit);
   }
 
-  function handleBackgroundTap(screenX, screenY) {
-    if (tool === 'note' || tool === 'event') {
-      const worldX = (screenX - translateX.value) / scale.value;
-      const worldY = (screenY - translateY.value) / scale.value;
-      if (tool === 'note') onAddFreeNote({ x: worldX, y: worldY });
-      else onAddEvent({ x: worldX, y: worldY });
-      setTool('select');
-    } else {
-      onSelect(null);
-    }
-  }
+  const handleBackgroundTap = useCallback(
+    (screenX, screenY) => {
+      if (tool === 'note' || tool === 'event') {
+        const worldX = (screenX - translateX.value) / scale.value;
+        const worldY = (screenY - translateY.value) / scale.value;
+        if (tool === 'note') onAddFreeNote({ x: worldX, y: worldY });
+        else onAddEvent({ x: worldX, y: worldY });
+        setTool('select');
+      } else {
+        onSelect(null);
+      }
+    },
+    [tool, onAddFreeNote, onAddEvent, onSelect, setTool, translateX, translateY, scale]
+  );
 
-  const canvasPan = Gesture.Pan()
-    .minPointers(1)
-    .maxPointers(1)
-    .minDistance(4)
-    .onStart(() => {
-      startTX.value = translateX.value;
-      startTY.value = translateY.value;
-    })
-    .onUpdate((e) => {
-      translateX.value = startTX.value + e.translationX;
-      translateY.value = startTY.value + e.translationY;
-    });
+  // Memoized so its identity survives re-renders (Board re-renders on every
+  // drag frame). Every block's `blocksExternalGesture(canvasGesture)` needs
+  // to keep pointing at the *same* gesture instance for that priority
+  // relation to hold reliably mid-drag — recreating canvasGesture each
+  // render was making that relation flaky exactly when a block was moving.
+  const canvasPan = useMemo(
+    () =>
+      Gesture.Pan()
+        .minPointers(1)
+        .maxPointers(1)
+        .minDistance(4)
+        .onStart(() => {
+          startTX.value = translateX.value;
+          startTY.value = translateY.value;
+        })
+        .onUpdate((e) => {
+          translateX.value = startTX.value + e.translationX;
+          translateY.value = startTY.value + e.translationY;
+        }),
+    []
+  );
 
-  const canvasPinch = Gesture.Pinch()
-    .onStart(() => {
-      startScale.value = scale.value;
-    })
-    .onUpdate((e) => {
-      const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, startScale.value * e.scale));
-      const worldX = (e.focalX - translateX.value) / scale.value;
-      const worldY = (e.focalY - translateY.value) / scale.value;
-      translateX.value = e.focalX - worldX * newScale;
-      translateY.value = e.focalY - worldY * newScale;
-      scale.value = newScale;
-    });
+  const canvasPinch = useMemo(
+    () =>
+      Gesture.Pinch()
+        .onStart(() => {
+          startScale.value = scale.value;
+        })
+        .onUpdate((e) => {
+          const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, startScale.value * e.scale));
+          const worldX = (e.focalX - translateX.value) / scale.value;
+          const worldY = (e.focalY - translateY.value) / scale.value;
+          translateX.value = e.focalX - worldX * newScale;
+          translateY.value = e.focalY - worldY * newScale;
+          scale.value = newScale;
+        }),
+    []
+  );
 
-  const backgroundTap = Gesture.Tap().onEnd((e) => {
-    // `x`/`y` (not `absoluteX`/`absoluteY`) since this gesture is attached
-    // directly to the Board viewport itself — already in the same
-    // Board-local coordinate space as translateX/translateY.
-    runOnJS(handleBackgroundTap)(e.x, e.y);
-  });
+  const backgroundTap = useMemo(
+    () =>
+      Gesture.Tap().onEnd((e) => {
+        // `x`/`y` (not `absoluteX`/`absoluteY`) since this gesture is attached
+        // directly to the Board viewport itself — already in the same
+        // Board-local coordinate space as translateX/translateY.
+        runOnJS(handleBackgroundTap)(e.x, e.y);
+      }),
+    [handleBackgroundTap]
+  );
 
-  const canvasGesture = Gesture.Race(backgroundTap, Gesture.Simultaneous(canvasPan, canvasPinch));
+  const canvasGesture = useMemo(
+    () => Gesture.Race(backgroundTap, Gesture.Simultaneous(canvasPan, canvasPinch)),
+    [backgroundTap, canvasPan, canvasPinch]
+  );
 
   const worldStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }, { translateY: translateY.value }, { scale: scale.value }],
