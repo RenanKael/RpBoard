@@ -88,7 +88,12 @@ export default function ConnectionsLayer({
             viewBox={`${b.left} ${b.top} ${b.width} ${b.height}`}
           >
             {segments.map((seg, i) => (
-              <Line key={i} x1={seg.x1} y1={seg.y1} x2={seg.x2} y2={seg.y2} stroke="#7c8089" strokeWidth={2} />
+              // Colored to match its own marker instead of a flat gray —
+              // when two events land close together, a shared gray made it
+              // easy to mistake one event's line for another's; matching
+              // the marker's color makes which line belongs to which point
+              // unambiguous at a glance.
+              <Line key={i} x1={seg.x1} y1={seg.y1} x2={seg.x2} y2={seg.y2} stroke={ev.color} strokeWidth={2.5} />
             ))}
           </Svg>
         );
