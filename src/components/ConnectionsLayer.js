@@ -16,6 +16,19 @@ function boundsFor(x1, y1, x2, y2, padding) {
   return { left, top, width, height };
 }
 
+// A per-line Svg is sized to its own two endpoints, which is normally tiny —
+// but a marker dragged far from its note (or two far-apart blocks manually
+// connected) makes that one line's box huge again, and react-native-svg
+// tries to rasterize it at that size regardless of how small every other
+// line is. That's the same crash the giant single Svg caused before, just
+// triggered by data instead of code, so skip rendering (rather than crash)
+// any single line whose box would exceed this.
+const MAX_LINE_SPAN = 4000;
+
+function isSafeToRender(b) {
+  return b.width <= MAX_LINE_SPAN && b.height <= MAX_LINE_SPAN;
+}
+
 export default function ConnectionsLayer({
   events,
   connections,
@@ -39,6 +52,7 @@ export default function ConnectionsLayer({
         const targetX = ev.note.x + NOTE_WIDTH / 2;
         const x1 = ev.markerX;
         const b = boundsFor(x1, 0, targetX, targetY, 20);
+        if (!isSafeToRender(b)) return null;
 
         return (
           <Svg
@@ -67,6 +81,7 @@ export default function ConnectionsLayer({
         const mid = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
         const isSelected = selectedConnectionId === conn.id;
         const b = boundsFor(p1.x, p1.y, p2.x, p2.y, 24);
+        if (!isSafeToRender(b)) return null;
         return (
           <Svg
             key={conn.id}
