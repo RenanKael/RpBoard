@@ -352,7 +352,7 @@ export default function App() {
   }
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.appBackground }]} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.appBackground }]} edges={['top', 'left', 'right', 'bottom']}>
       <GestureHandlerRootView style={styles.app}>
         <StatusBar style={darkMode ? 'light' : 'dark'} />
 

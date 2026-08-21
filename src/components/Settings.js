@@ -1,4 +1,5 @@
 import { Modal, View, Text, Pressable, StyleSheet, Switch } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { LANGUAGES } from '../i18n';
 
@@ -11,9 +12,25 @@ function IconClose({ color }) {
 }
 
 export default function Settings({ visible, language, translations, darkMode, onDarkModeChange, theme, onLanguageChange, onClose }) {
+  // `Modal` renders outside the normal view tree (its own native window), so
+  // it doesn't inherit the app-level SafeAreaView's padding — it needs its
+  // own insets so the panel can't end up tight against a notch or the
+  // system bars on devices where the centered layout leaves little margin.
+  const insets = useSafeAreaInsets();
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.backdrop}>
+      <View
+        style={[
+          styles.backdrop,
+          {
+            paddingTop: 24 + insets.top,
+            paddingBottom: 24 + insets.bottom,
+            paddingLeft: 24 + insets.left,
+            paddingRight: 24 + insets.right,
+          },
+        ]}
+      >
         <View style={[styles.panel, { backgroundColor: theme.surface }]}>
           <View style={styles.header}>
             <View>
@@ -59,7 +76,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
     backgroundColor: 'rgba(18, 20, 28, 0.32)',
   },
   panel: {
