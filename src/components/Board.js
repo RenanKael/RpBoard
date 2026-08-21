@@ -31,6 +31,7 @@ export default function Board({
   onDeleteEvent,
   onAddConnection,
   onDeleteConnection,
+  onCreateBlock,
   translations,
   theme,
 }) {
@@ -217,6 +218,7 @@ export default function Board({
               onMarkerStyleChange={(style) => onUpdateEventMarkerStyle(ev.id, style)}
               onDelete={() => onDeleteEvent(ev.id)}
               onConnectRelease={handleConnectRelease}
+              onCreateBlock={onCreateBlock}
               onMeasure={(h) => measureBlock('event', ev.id, h)}
               theme={theme}
             />
@@ -250,6 +252,7 @@ export default function Board({
               onColorChange={(color) => onUpdateFreeNoteColor(note.id, color)}
               onDelete={() => onDeleteFreeNote(note.id)}
               onConnectRelease={handleConnectRelease}
+              onCreateBlock={onCreateBlock}
               onMeasure={(h) => measureBlock('freeNote', note.id, h)}
               theme={theme}
             />
@@ -266,13 +269,9 @@ export default function Board({
 
         {isEmpty && (
           <View style={styles.emptyHint} pointerEvents="none">
-<<<<<<< HEAD
-            <Text style={[styles.emptyHintText, { color: theme.hint }]}>{translations.boardHint}</Text>
-=======
-            <Text style={[styles.emptyHintText, compact && styles.emptyHintTextCompact]}>
-              Use a barra lateral para adicionar uma nota ou um evento na linha do tempo.
+            <Text style={[styles.emptyHintText, { color: theme.hint }, compact && styles.emptyHintTextCompact]}>
+              {translations.boardHint}
             </Text>
->>>>>>> bdc627a (Feat Arthur:Adicionei a pagina de gerenciamento de timelines e pequena melhora visual)
           </View>
         )}
 

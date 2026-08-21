@@ -7,13 +7,9 @@ import Sidebar from './src/components/Sidebar';
 import Board from './src/components/Board';
 import TimelineManager from './src/components/TimelineManager';
 import { useHistory } from './src/hooks/useHistory';
-<<<<<<< HEAD
-import { loadContent, loadPreferences, saveContent, savePreferences } from './src/storage';
-=======
-import { loadContent, saveContent, loadTimelines, saveTimelines } from './src/storage';
->>>>>>> bdc627a (Feat Arthur:Adicionei a pagina de gerenciamento de timelines e pequena melhora visual)
+import { loadContent, loadPreferences, saveContent, savePreferences, loadTimelines, saveTimelines } from './src/storage';
 import { uid } from './src/utils/uid';
-import { MARKER_PRESETS } from './src/constants';
+import { MARKER_PRESETS, NOTE_WIDTH } from './src/constants';
 import Settings from './src/components/Settings';
 import { getTranslations, normalizeLanguage } from './src/i18n';
 import { getTheme } from './src/theme';
@@ -40,16 +36,10 @@ export default function App() {
   const activeTimeline = timelines.find((timeline) => timeline.id === selectedTimelineId) ?? null;
 
   useEffect(() => {
-<<<<<<< HEAD
-    Promise.all([loadContent(), loadPreferences()]).then(([loadedContent, preferences]) => {
-      set(() => loadedContent);
-      setLanguage(normalizeLanguage(preferences.language));
-      setDarkMode(preferences.darkMode);
-=======
     let isMounted = true;
 
     async function loadInitialState() {
-      const loadedTimelines = await loadTimelines();
+      const [loadedTimelines, preferences] = await Promise.all([loadTimelines(), loadPreferences()]);
       if (!isMounted) return;
 
       const fallbackTimeline = loadedTimelines[0] ?? {
@@ -61,7 +51,8 @@ export default function App() {
       setTimelines(loadedTimelines.length ? loadedTimelines : [fallbackTimeline]);
       setSelectedTimelineId(fallbackTimeline.id);
       set(() => fallbackTimeline.content ?? EMPTY_CONTENT);
->>>>>>> bdc627a (Feat Arthur:Adicionei a pagina de gerenciamento de timelines e pequena melhora visual)
+      setLanguage(normalizeLanguage(preferences.language));
+      setDarkMode(preferences.darkMode);
       hasLoaded.current = true;
       setLoading(false);
     }
@@ -78,14 +69,11 @@ export default function App() {
   }, [state]);
 
   useEffect(() => {
-<<<<<<< HEAD
     if (!hasLoaded.current) return;
     savePreferences({ language, darkMode });
   }, [language, darkMode]);
 
-  const translations = getTranslations(language);
-  const theme = getTheme(darkMode);
-=======
+  useEffect(() => {
     if (!selectedTimelineId) return;
     setTimelines((prev) =>
       prev.map((timeline) => (timeline.id === selectedTimelineId ? { ...timeline, content: state } : timeline))
@@ -96,6 +84,9 @@ export default function App() {
     if (!hasLoaded.current || timelines.length === 0) return;
     saveTimelines(timelines);
   }, [timelines]);
+
+  const translations = getTranslations(language);
+  const theme = getTheme(darkMode);
 
   const openTimeline = useCallback(
     (id) => {
@@ -127,7 +118,6 @@ export default function App() {
     set(() => EMPTY_CONTENT);
     setScreen('board');
   }, [set, timelines.length]);
->>>>>>> bdc627a (Feat Arthur:Adicionei a pagina de gerenciamento de timelines e pequena melhora visual)
 
   const addFreeNote = useCallback(
     (pos) => {
@@ -163,6 +153,55 @@ export default function App() {
       setSelected({ type: 'event', id });
     },
     [commit, state.events.length]
+  );
+
+  const addEventAfter = useCallback(
+    (sourceId) => {
+      const source = state.events.find((e) => e.id === sourceId);
+      if (!source) return;
+      const id = uid();
+      const preset = MARKER_PRESETS[state.events.length % MARKER_PRESETS.length];
+      const above = source.note.y < 0;
+      const markerX = source.markerX + NOTE_WIDTH + 60;
+      commit((prev) => ({
+        ...prev,
+        events: [
+          ...prev.events,
+          {
+            id,
+            markerX,
+            shape: preset.shape,
+            color: preset.color,
+            dateLabel: 'Nova data',
+            note: { x: markerX - 100, y: above ? -170 : 70, text: 'Novo evento', color: '#fff59d' },
+          },
+        ],
+      }));
+      setSelected({ type: 'event', id });
+    },
+    [commit, state.events]
+  );
+
+  const addFreeNoteAfter = useCallback(
+    (sourceId) => {
+      const source = state.freeNotes.find((n) => n.id === sourceId);
+      if (!source) return;
+      const id = uid();
+      commit((prev) => ({
+        ...prev,
+        freeNotes: [...prev.freeNotes, { id, x: source.x + NOTE_WIDTH + 40, y: source.y, text: 'Nova nota', color: '#fff59d' }],
+      }));
+      setSelected({ type: 'freeNote', id });
+    },
+    [commit, state.freeNotes]
+  );
+
+  const createBlockFrom = useCallback(
+    (ref) => {
+      if (ref.type === 'event') addEventAfter(ref.id);
+      else addFreeNoteAfter(ref.id);
+    },
+    [addEventAfter, addFreeNoteAfter]
   );
 
   const moveFreeNote = useCallback(
@@ -298,60 +337,9 @@ export default function App() {
   }
 
   return (
-<<<<<<< HEAD
-    <GestureHandlerRootView style={styles.app}>
-      <StatusBar style={darkMode ? 'light' : 'dark'} />
-      <Sidebar
-        tool={tool}
-        onToolChange={setTool}
-        onUndo={undo}
-        onRedo={redo}
-        canUndo={canUndo}
-        canRedo={canRedo}
-        translations={translations}
-        theme={theme}
-        onSettings={() => setSettingsVisible(true)}
-      />
-      <Board
-        content={state}
-        tool={tool}
-        setTool={setTool}
-        selected={selected}
-        onSelect={setSelected}
-        onAddFreeNote={addFreeNote}
-        onAddEvent={addEvent}
-        onMoveFreeNote={moveFreeNote}
-        onMoveEventMarker={moveEventMarker}
-        onMoveEventNote={moveEventNote}
-        onSnapshot={snapshot}
-        onUpdateFreeNoteText={updateFreeNoteText}
-        onUpdateFreeNoteColor={updateFreeNoteColor}
-        onDeleteFreeNote={deleteFreeNote}
-        onUpdateEventText={updateEventText}
-        onUpdateEventDateLabel={updateEventDateLabel}
-        onUpdateEventNoteColor={updateEventNoteColor}
-        onUpdateEventMarkerStyle={updateEventMarkerStyle}
-        onDeleteEvent={deleteEvent}
-        onAddConnection={addConnection}
-        onDeleteConnection={deleteConnection}
-        translations={translations}
-        theme={theme}
-      />
-      <Settings
-        visible={settingsVisible}
-        language={language}
-        translations={translations}
-        onLanguageChange={setLanguage}
-        darkMode={darkMode}
-        onDarkModeChange={setDarkMode}
-        theme={theme}
-        onClose={() => setSettingsVisible(false)}
-      />
-    </GestureHandlerRootView>
-=======
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.appBackground }]} edges={['top', 'left', 'right']}>
       <GestureHandlerRootView style={styles.app}>
-        <StatusBar style="dark" />
+        <StatusBar style={darkMode ? 'light' : 'dark'} />
 
         {screen === 'manager' ? (
           <TimelineManager timelines={timelines} onSelect={openTimeline} onCreateTimeline={createTimeline} />
@@ -366,14 +354,20 @@ export default function App() {
               onRedo={redo}
               canUndo={canUndo}
               canRedo={canRedo}
+              translations={translations}
+              theme={theme}
+              onSettings={() => setSettingsVisible(true)}
             />
 
             <View style={styles.boardPane}>
               <View style={styles.boardHeader}>
-                <Pressable style={styles.backButton} onPress={() => setScreen('manager')}>
-                  <Text style={styles.backButtonText}>Gerenciar</Text>
+                <Pressable
+                  style={[styles.backButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                  onPress={() => setScreen('manager')}
+                >
+                  <Text style={[styles.backButtonText, { color: theme.text }]}>Gerenciar</Text>
                 </Pressable>
-                <Text style={styles.boardTitle}>{activeTimeline?.name ?? 'Timeline'}</Text>
+                <Text style={[styles.boardTitle, { color: theme.text }]}>{activeTimeline?.name ?? 'Timeline'}</Text>
               </View>
 
               <Board
@@ -398,13 +392,26 @@ export default function App() {
                 onDeleteEvent={deleteEvent}
                 onAddConnection={addConnection}
                 onDeleteConnection={deleteConnection}
+                onCreateBlock={createBlockFrom}
+                translations={translations}
+                theme={theme}
               />
             </View>
           </>
         )}
+
+        <Settings
+          visible={settingsVisible}
+          language={language}
+          translations={translations}
+          onLanguageChange={setLanguage}
+          darkMode={darkMode}
+          onDarkModeChange={setDarkMode}
+          theme={theme}
+          onClose={() => setSettingsVisible(false)}
+        />
       </GestureHandlerRootView>
     </SafeAreaView>
->>>>>>> bdc627a (Feat Arthur:Adicionei a pagina de gerenciamento de timelines e pequena melhora visual)
   );
 }
 

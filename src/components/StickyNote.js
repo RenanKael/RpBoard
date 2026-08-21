@@ -35,6 +35,7 @@ export default function StickyNote({
   onColorChange,
   onDelete,
   onConnectRelease,
+  onCreateBlock,
   onMeasure,
   theme,
 }) {
@@ -74,22 +75,13 @@ export default function StickyNote({
       runOnJS(setEditing)(true);
     });
 
-<<<<<<< HEAD
   const singleTap = Gesture.Tap()
     .blocksExternalGesture(canvasGesture)
-=======
-  const tapToSelect = Gesture.Tap()
-    .maxDuration(250)
->>>>>>> bdc627a (Feat Arthur:Adicionei a pagina de gerenciamento de timelines e pequena melhora visual)
     .onEnd(() => {
       runOnJS(onSelect)();
     });
 
-<<<<<<< HEAD
   const noteGesture = Gesture.Exclusive(doubleTap, singleTap, notePan);
-=======
-  const noteGesture = Gesture.Race(doubleTap, tapToSelect, notePan);
->>>>>>> bdc627a (Feat Arthur:Adicionei a pagina de gerenciamento de timelines e pequena melhora visual)
 
   function commit() {
     setEditing(false);
@@ -155,6 +147,7 @@ export default function StickyNote({
         connectCurrentScreenX={connectCurrentScreenX}
         connectCurrentScreenY={connectCurrentScreenY}
         onRelease={onConnectRelease}
+        onCreate={onCreateBlock}
         style={handleStyle}
         theme={theme}
       />

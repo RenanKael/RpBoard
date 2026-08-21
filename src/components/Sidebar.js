@@ -60,71 +60,64 @@ const TOOLS = [
   { id: 'event', Icon: IconEvent },
 ];
 
-const ACTIVE_COLOR = '#4262ff';
-const IDLE_COLOR = '#45464c';
-const DISABLED_COLOR = '#c7c7cc';
-
-<<<<<<< HEAD
-export default function Sidebar({ tool, onToolChange, onUndo, onRedo, canUndo, canRedo, translations, theme, onSettings }) {
-  return (
-    <View style={[styles.sidebar, { backgroundColor: theme.surface, borderRightColor: theme.border }]}>
-      <View style={styles.logo}>
-        <Text style={styles.logoText}>RP</Text>
-=======
-export default function Sidebar({ tool, compact = false, sidebarWidth = 64, onToolChange, onUndo, onRedo, canUndo, canRedo }) {
+export default function Sidebar({
+  tool,
+  compact = false,
+  sidebarWidth = 64,
+  onToolChange,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo,
+  translations,
+  theme,
+  onSettings,
+}) {
   const iconSize = compact ? 18 : 20;
   const buttonSize = compact ? 34 : 40;
   const logoSize = compact ? 32 : 36;
 
   return (
-    <View style={[styles.sidebar, { width: sidebarWidth }, compact && styles.sidebarCompact]}>
+    <View
+      style={[
+        styles.sidebar,
+        { width: sidebarWidth, backgroundColor: theme.surface, borderRightColor: theme.border },
+        compact && styles.sidebarCompact,
+      ]}
+    >
       <View style={[styles.logo, { width: logoSize, height: logoSize }, compact && styles.logoCompact]}>
         <Text style={[styles.logoText, compact && styles.logoTextCompact]}>RP</Text>
->>>>>>> bdc627a (Feat Arthur:Adicionei a pagina de gerenciamento de timelines e pequena melhora visual)
       </View>
 
       <View style={[styles.tools, compact && styles.toolsCompact]}>
         {TOOLS.map(({ id, Icon }) => (
-<<<<<<< HEAD
-          <Pressable key={id} style={[styles.btn, tool === id && { backgroundColor: theme.activeBackground }]} onPress={() => onToolChange(id)} accessibilityLabel={translations[id === 'select' ? 'selectTool' : `${id}Tool`]}>
-            <Icon color={tool === id ? theme.activeText : theme.icon} />
-=======
           <Pressable
             key={id}
             style={[
               styles.btn,
               { width: buttonSize, height: buttonSize },
-              tool === id && styles.btnActive,
+              tool === id && { backgroundColor: theme.activeBackground },
               compact && styles.btnCompact,
             ]}
             onPress={() => onToolChange(id)}
+            accessibilityLabel={translations[id === 'select' ? 'selectTool' : `${id}Tool`]}
           >
-            <Icon color={tool === id ? ACTIVE_COLOR : IDLE_COLOR} size={iconSize} />
->>>>>>> bdc627a (Feat Arthur:Adicionei a pagina de gerenciamento de timelines e pequena melhora visual)
+            <Icon color={tool === id ? theme.activeText : theme.icon} size={iconSize} />
           </Pressable>
         ))}
       </View>
 
       <View style={styles.spacer} />
 
-<<<<<<< HEAD
-      <View style={styles.tools}>
-        <Pressable style={styles.btn} onPress={onUndo} disabled={!canUndo}>
-          <IconUndo color={canUndo ? theme.icon : theme.disabled} />
-        </Pressable>
-        <Pressable style={styles.btn} onPress={onRedo} disabled={!canRedo}>
-          <IconRedo color={canRedo ? theme.icon : theme.disabled} />
-        </Pressable>
-        <Pressable style={styles.btn} onPress={onSettings} accessibilityLabel={translations.openSettings}>
-          <IconSettings color={theme.icon} />
-=======
       <View style={[styles.tools, compact && styles.toolsCompact]}>
         <Pressable style={[styles.btn, { width: buttonSize, height: buttonSize }, compact && styles.btnCompact]} onPress={onUndo} disabled={!canUndo}>
-          <IconUndo color={canUndo ? IDLE_COLOR : DISABLED_COLOR} size={compact ? 16 : 18} />
+          <IconUndo color={canUndo ? theme.icon : theme.disabled} size={compact ? 16 : 18} />
         </Pressable>
         <Pressable style={[styles.btn, { width: buttonSize, height: buttonSize }, compact && styles.btnCompact]} onPress={onRedo} disabled={!canRedo}>
-          <IconRedo color={canRedo ? IDLE_COLOR : DISABLED_COLOR} size={compact ? 16 : 18} />
->>>>>>> bdc627a (Feat Arthur:Adicionei a pagina de gerenciamento de timelines e pequena melhora visual)
+          <IconRedo color={canRedo ? theme.icon : theme.disabled} size={compact ? 16 : 18} />
+        </Pressable>
+        <Pressable style={[styles.btn, { width: buttonSize, height: buttonSize }, compact && styles.btnCompact]} onPress={onSettings} accessibilityLabel={translations.openSettings}>
+          <IconSettings color={theme.icon} />
         </Pressable>
       </View>
     </View>
@@ -177,8 +170,5 @@ const styles = StyleSheet.create({
   },
   btnCompact: {
     marginTop: 4,
-  },
-  btnActive: {
-    backgroundColor: '#ebefff',
   },
 });

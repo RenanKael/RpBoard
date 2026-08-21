@@ -30,6 +30,7 @@ export default function EventItem({
   onMarkerStyleChange,
   onDelete,
   onConnectRelease,
+  onCreateBlock,
   onMeasure,
   theme,
 }) {
@@ -142,6 +143,7 @@ export default function EventItem({
         onColorChange={onColorChange}
         onDelete={onDelete}
         onConnectRelease={onConnectRelease}
+        onCreateBlock={onCreateBlock}
         onMeasure={onMeasure}
         theme={theme}
       />

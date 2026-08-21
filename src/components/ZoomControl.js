@@ -26,27 +26,15 @@ export default function ZoomControl({ translateX, translateY, scale, viewportSiz
   }
 
   return (
-<<<<<<< HEAD
-    <View style={[styles.control, { backgroundColor: theme.controlBackground }]}>
-      <Pressable style={styles.button} onPress={() => zoomBy(1 / 1.2)}>
-        <Text style={[styles.buttonText, { color: theme.icon }]}>−</Text>
-      </Pressable>
-      <Pressable style={styles.resetButton} onPress={onResetView}>
-        <Text style={[styles.resetText, { color: theme.icon }]}>{percent}%</Text>
-      </Pressable>
-      <Pressable style={styles.button} onPress={() => zoomBy(1.2)}>
-        <Text style={[styles.buttonText, { color: theme.icon }]}>+</Text>
-=======
-    <View style={[styles.control, compact && styles.controlCompact]}>
+    <View style={[styles.control, { backgroundColor: theme.controlBackground }, compact && styles.controlCompact]}>
       <Pressable style={[styles.button, compact && styles.buttonCompact]} onPress={() => zoomBy(1 / 1.2)}>
-        <Text style={[styles.buttonText, compact && styles.buttonTextCompact]}>−</Text>
+        <Text style={[styles.buttonText, { color: theme.icon }, compact && styles.buttonTextCompact]}>−</Text>
       </Pressable>
       <Pressable style={[styles.resetButton, compact && styles.resetButtonCompact]} onPress={onResetView}>
-        <Text style={[styles.resetText, compact && styles.resetTextCompact]}>{percent}%</Text>
+        <Text style={[styles.resetText, { color: theme.icon }, compact && styles.resetTextCompact]}>{percent}%</Text>
       </Pressable>
       <Pressable style={[styles.button, compact && styles.buttonCompact]} onPress={() => zoomBy(1.2)}>
-        <Text style={[styles.buttonText, compact && styles.buttonTextCompact]}>+</Text>
->>>>>>> bdc627a (Feat Arthur:Adicionei a pagina de gerenciamento de timelines e pequena melhora visual)
+        <Text style={[styles.buttonText, { color: theme.icon }, compact && styles.buttonTextCompact]}>+</Text>
       </Pressable>
     </View>
   );

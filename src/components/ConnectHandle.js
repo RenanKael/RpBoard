@@ -22,6 +22,7 @@ export default function ConnectHandle({
   connectCurrentScreenX,
   connectCurrentScreenY,
   onRelease,
+  onCreate,
   style,
   theme,
 }) {
@@ -56,8 +57,19 @@ export default function ConnectHandle({
       connectActive.value = false;
     });
 
+  // A plain tap (no movement) on the "+" creates a new block instead of
+  // starting a connection drag — Exclusive picks whichever gesture actually
+  // recognizes, so a real drag still goes to `pan` untouched.
+  const tap = Gesture.Tap()
+    .blocksExternalGesture(canvasGesture)
+    .onEnd(() => {
+      runOnJS(onCreate)({ type: sourceType, id: sourceId });
+    });
+
+  const handleGesture = Gesture.Exclusive(tap, pan);
+
   return (
-    <GestureDetector gesture={pan}>
+    <GestureDetector gesture={handleGesture}>
       <View style={[styles.handle, style, { backgroundColor: theme.activeText }]} hitSlop={8}>
         <View style={styles.barHorizontal} />
         <View style={styles.barVertical} />
