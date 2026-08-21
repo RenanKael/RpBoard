@@ -13,7 +13,7 @@ export default function ConnectionsLayer({
   onDeleteConnection,
 }) {
   return (
-    <Svg style={StyleSheet.absoluteFill} pointerEvents="box-none">
+    <Svg style={[StyleSheet.absoluteFill, { overflow: 'visible' }]} pointerEvents="box-none">
       {events.map((ev) => {
         const h = blockHeights[`event:${ev.id}`] ?? DEFAULT_NOTE_HEIGHT;
         const above = ev.note.y < 0;
