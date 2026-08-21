@@ -73,12 +73,17 @@ export default function App() {
     savePreferences({ language, darkMode });
   }, [language, darkMode]);
 
+  // Deliberately doesn't mirror `state` into the `timelines` array on every
+  // change — during a drag this fires on every touch-move frame, and doing
+  // a setState here as well as in useHistory's `set` was enough nested
+  // React updates per frame to trip "Maximum update depth exceeded". The
+  // per-timeline `content` in `timelines` is instead refreshed at discrete
+  // checkpoints (see `goToManager`), and persisted straight to storage here
+  // without touching React state.
   useEffect(() => {
-    if (!selectedTimelineId) return;
-    setTimelines((prev) =>
-      prev.map((timeline) => (timeline.id === selectedTimelineId ? { ...timeline, content: state } : timeline))
-    );
-  }, [state, selectedTimelineId]);
+    if (!hasLoaded.current || !selectedTimelineId || timelines.length === 0) return;
+    saveTimelines(timelines.map((timeline) => (timeline.id === selectedTimelineId ? { ...timeline, content: state } : timeline)));
+  }, [state]);
 
   useEffect(() => {
     if (!hasLoaded.current || timelines.length === 0) return;
@@ -118,6 +123,16 @@ export default function App() {
     set(() => EMPTY_CONTENT);
     setScreen('board');
   }, [set, timelines.length]);
+
+  // Folds the board's live-edited `state` back into the open timeline's
+  // `content` before leaving it — the checkpoint the manager's card stats
+  // and the next `openTimeline` rely on being up to date.
+  const goToManager = useCallback(() => {
+    setTimelines((prev) =>
+      prev.map((timeline) => (timeline.id === selectedTimelineId ? { ...timeline, content: state } : timeline))
+    );
+    setScreen('manager');
+  }, [selectedTimelineId, state]);
 
   const addFreeNote = useCallback(
     (pos) => {
@@ -363,7 +378,7 @@ export default function App() {
               <View style={styles.boardHeader}>
                 <Pressable
                   style={[styles.backButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
-                  onPress={() => setScreen('manager')}
+                  onPress={goToManager}
                 >
                   <Text style={[styles.backButtonText, { color: theme.text }]}>Gerenciar</Text>
                 </Pressable>

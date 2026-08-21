@@ -82,6 +82,7 @@ export default function StickyNote({
   // a dedicated grab handle, unlike the card body which only drags once
   // the block is already selected (see notePan above).
   const moveHandlePan = Gesture.Pan()
+    .hitSlop(14)
     .blocksExternalGesture(canvasGesture)
     .onBegin(() => {
       runOnJS(onSelect)();
@@ -157,7 +158,7 @@ export default function StickyNote({
       </GestureDetector>
 
       <GestureDetector gesture={moveHandlePan}>
-        <View style={[styles.moveHandle, { backgroundColor: theme.surface, borderColor: theme.border }]} hitSlop={6}>
+        <View style={[styles.moveHandle, { backgroundColor: theme.surface, borderColor: theme.border }]} hitSlop={14}>
           <IconMove color={theme.icon} />
         </View>
       </GestureDetector>
