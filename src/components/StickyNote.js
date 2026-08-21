@@ -60,7 +60,7 @@ export default function StickyNote({
       // way a normal touch would, so without this a date/text field left
       // open on another block keeps its cursor blinking after you've moved
       // on to dragging this one.
-      runOnJS(Keyboard.dismiss)();
+      runOnJS(() => Keyboard.dismiss())();
       runOnJS(onSelect)();
     })
     .onStart(() => {
@@ -85,7 +85,7 @@ export default function StickyNote({
   const singleTap = Gesture.Tap()
     .blocksExternalGesture(canvasGesture)
     .onEnd(() => {
-      runOnJS(Keyboard.dismiss)();
+      runOnJS(() => Keyboard.dismiss())();
       runOnJS(onSelect)();
     });
 
