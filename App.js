@@ -9,7 +9,7 @@ import { loadContent, loadPreferences, saveContent, savePreferences } from './sr
 import { uid } from './src/utils/uid';
 import { MARKER_PRESETS } from './src/constants';
 import Settings from './src/components/Settings';
-import { getTranslations } from './src/i18n';
+import { getTranslations, normalizeLanguage } from './src/i18n';
 import { getTheme } from './src/theme';
 
 const EMPTY_CONTENT = { freeNotes: [], events: [], connections: [] };
@@ -27,7 +27,7 @@ export default function App() {
   useEffect(() => {
     Promise.all([loadContent(), loadPreferences()]).then(([loadedContent, preferences]) => {
       set(() => loadedContent);
-      setLanguage(preferences.language);
+      setLanguage(normalizeLanguage(preferences.language));
       setDarkMode(preferences.darkMode);
       hasLoaded.current = true;
       setLoading(false);

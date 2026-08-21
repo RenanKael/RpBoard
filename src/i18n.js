@@ -55,3 +55,7 @@ const TRANSLATIONS = {
 export function getTranslations(language) {
   return TRANSLATIONS[language] || TRANSLATIONS['pt-BR'];
 }
+
+export function normalizeLanguage(language) {
+  return TRANSLATIONS[language] ? language : 'pt-BR';
+}

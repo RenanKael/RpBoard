@@ -5,6 +5,7 @@ import { useCallback, useRef, useState } from 'react';
 // discrete actions (add, delete, text edits, color changes).
 export function useHistory(initialState) {
   const [state, setState] = useState(initialState);
+  const [, refreshHistory] = useState(0);
   const past = useRef([]);
   const future = useRef([]);
 
@@ -12,6 +13,7 @@ export function useHistory(initialState) {
     past.current.push(state);
     if (past.current.length > 60) past.current.shift();
     future.current = [];
+    refreshHistory((value) => value + 1);
   }, [state]);
 
   const set = useCallback((updater) => {
@@ -27,8 +29,9 @@ export function useHistory(initialState) {
   );
 
   const undo = useCallback(() => {
+    if (past.current.length === 0) return;
+    refreshHistory((value) => value + 1);
     setState((current) => {
-      if (past.current.length === 0) return current;
       const prev = past.current.pop();
       future.current.push(current);
       return prev;
@@ -36,8 +39,9 @@ export function useHistory(initialState) {
   }, []);
 
   const redo = useCallback(() => {
+    if (future.current.length === 0) return;
+    refreshHistory((value) => value + 1);
     setState((current) => {
-      if (future.current.length === 0) return current;
       const next = future.current.pop();
       past.current.push(current);
       return next;

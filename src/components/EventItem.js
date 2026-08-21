@@ -60,11 +60,18 @@ export default function EventItem({
   const dateDoubleTap = Gesture.Tap()
     .numberOfTaps(2)
     .maxDuration(280)
+    .blocksExternalGesture(canvasGesture)
     .onEnd(() => {
       runOnJS(setEditingDate)(true);
     });
 
-  const markerGesture = Gesture.Race(dateDoubleTap, markerPan);
+  const markerTap = Gesture.Tap()
+    .blocksExternalGesture(canvasGesture)
+    .onEnd(() => {
+      runOnJS(onSelect)();
+    });
+
+  const markerGesture = Gesture.Exclusive(dateDoubleTap, markerTap, markerPan);
 
   function commitDate() {
     setEditingDate(false);
@@ -79,7 +86,7 @@ export default function EventItem({
         <View style={[styles.marker, { left: event.markerX }, selected && styles.markerSelected]}>
           <MarkerShape shape={event.shape} color={event.color} />
           {editingDate ? (
-            <TextInput autoFocus style={styles.dateInput} value={dateDraft} onChangeText={setDateDraft} onBlur={commitDate} />
+            <TextInput autoFocus style={[styles.dateInput, { color: theme.text }]} value={dateDraft} onChangeText={setDateDraft} onBlur={commitDate} />
           ) : (
             <Text style={[styles.dateLabel, { color: theme.text }]}>{event.dateLabel}</Text>
           )}
