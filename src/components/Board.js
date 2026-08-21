@@ -131,9 +131,15 @@ export default function Board({
   // to keep pointing at the *same* gesture instance for that priority
   // relation to hold reliably mid-drag — recreating canvasGesture each
   // render was making that relation flaky exactly when a block was moving.
+  //
+  // Pan/pinch are also fully disabled while a block is selected — with a
+  // block selected the only thing a drag should ever do is move it, never
+  // the camera. Tapping empty space (which clears selection) is handled by
+  // backgroundTap below, which stays enabled so you can get back to panning.
   const canvasPan = useMemo(
     () =>
       Gesture.Pan()
+        .enabled(!selected)
         .minPointers(1)
         .maxPointers(1)
         .minDistance(4)
@@ -145,12 +151,13 @@ export default function Board({
           translateX.value = startTX.value + e.translationX;
           translateY.value = startTY.value + e.translationY;
         }),
-    []
+    [selected]
   );
 
   const canvasPinch = useMemo(
     () =>
       Gesture.Pinch()
+        .enabled(!selected)
         .onStart(() => {
           startScale.value = scale.value;
         })
@@ -162,7 +169,7 @@ export default function Board({
           translateY.value = e.focalY - worldY * newScale;
           scale.value = newScale;
         }),
-    []
+    [selected]
   );
 
   const backgroundTap = useMemo(
