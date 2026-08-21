@@ -170,53 +170,36 @@ export default function App() {
     [commit, state.events.length]
   );
 
-  const addEventAfter = useCallback(
-    (sourceId) => {
-      const source = state.events.find((e) => e.id === sourceId);
-      if (!source) return;
-      const id = uid();
-      const preset = MARKER_PRESETS[state.events.length % MARKER_PRESETS.length];
-      const above = source.note.y < 0;
-      const markerX = source.markerX + NOTE_WIDTH + 60;
-      commit((prev) => ({
-        ...prev,
-        events: [
-          ...prev.events,
-          {
-            id,
-            markerX,
-            shape: preset.shape,
-            color: preset.color,
-            dateLabel: 'Nova data',
-            note: { x: markerX - 100, y: above ? -170 : 70, text: 'Novo evento', color: '#fff59d' },
-          },
-        ],
-      }));
-      setSelected({ type: 'event', id });
-    },
-    [commit, state.events]
-  );
-
-  const addFreeNoteAfter = useCallback(
-    (sourceId) => {
-      const source = state.freeNotes.find((n) => n.id === sourceId);
-      if (!source) return;
-      const id = uid();
-      commit((prev) => ({
-        ...prev,
-        freeNotes: [...prev.freeNotes, { id, x: source.x + NOTE_WIDTH + 40, y: source.y, text: 'Nova nota', color: '#fff59d' }],
-      }));
-      setSelected({ type: 'freeNote', id });
-    },
-    [commit, state.freeNotes]
-  );
-
+  // The "+" always creates a plain free note next to the source, never a
+  // new timeline event — so it never gets its own marker or connecting
+  // line. When the source is an event, the new note still lands on the
+  // same side of the timeline (above/below) the source is on, just without
+  // being tied to the timeline itself.
   const createBlockFrom = useCallback(
     (ref) => {
-      if (ref.type === 'event') addEventAfter(ref.id);
-      else addFreeNoteAfter(ref.id);
+      const id = uid();
+      if (ref.type === 'event') {
+        const source = state.events.find((e) => e.id === ref.id);
+        if (!source) return;
+        const above = source.note.y < 0;
+        commit((prev) => ({
+          ...prev,
+          freeNotes: [
+            ...prev.freeNotes,
+            { id, x: source.markerX + NOTE_WIDTH + 60 - 100, y: above ? -170 : 70, text: 'Nova nota', color: '#fff59d' },
+          ],
+        }));
+      } else {
+        const source = state.freeNotes.find((n) => n.id === ref.id);
+        if (!source) return;
+        commit((prev) => ({
+          ...prev,
+          freeNotes: [...prev.freeNotes, { id, x: source.x + NOTE_WIDTH + 40, y: source.y, text: 'Nova nota', color: '#fff59d' }],
+        }));
+      }
+      setSelected({ type: 'freeNote', id });
     },
-    [addEventAfter, addFreeNoteAfter]
+    [commit, state.events, state.freeNotes]
   );
 
   const moveFreeNote = useCallback(
