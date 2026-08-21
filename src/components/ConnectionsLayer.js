@@ -1,7 +1,20 @@
-import { StyleSheet } from 'react-native';
 import Svg, { Line, Circle, G } from 'react-native-svg';
 import { NOTE_WIDTH, DEFAULT_NOTE_HEIGHT } from '../constants';
 import { rectBorderPoint } from '../utils/geometry';
+
+// Each line gets its own small Svg sized just to its own bounding box,
+// instead of one giant Svg covering the whole pannable world — a single
+// Svg spanning the world's full extent (mirroring the oversized-canvas
+// trick the plain `timelineLine` View uses) was crashing the app on mount:
+// react-native-svg tries to rasterize it, and a canvas that large blows
+// past Android's texture/bitmap size limits.
+function boundsFor(x1, y1, x2, y2, padding) {
+  const left = Math.min(x1, x2) - padding;
+  const top = Math.min(y1, y2) - padding;
+  const width = Math.abs(x2 - x1) + padding * 2;
+  const height = Math.abs(y2 - y1) + padding * 2;
+  return { left, top, width, height };
+}
 
 export default function ConnectionsLayer({
   events,
@@ -13,19 +26,7 @@ export default function ConnectionsLayer({
   onDeleteConnection,
 }) {
   return (
-    // Without an explicit viewBox, `overflow: visible` on Android doesn't
-    // actually let the SVG draw outside its own declared box — the native
-    // canvas is genuinely bounded to it, no matter the style. `world`'s own
-    // (0,0) sits right at the timeline, so lines to blocks above it (negative
-    // y) were being hard-clipped away. A viewBox spanning well above and
-    // below y=0 (matching the same oversized-canvas trick `timelineLine`
-    // uses horizontally) fixes that for real, with child coordinates
-    // unchanged since the viewBox keeps a 1:1 scale with world space.
-    <Svg
-      style={styles.svg}
-      viewBox="-100000 -4000 200000 8000"
-      pointerEvents="box-none"
-    >
+    <>
       {events.map((ev) => {
         const h = blockHeights[`event:${ev.id}`] ?? DEFAULT_NOTE_HEIGHT;
         const above = ev.note.y < 0;
@@ -36,21 +37,39 @@ export default function ConnectionsLayer({
         // nothing or fall just short of visibly touching the block.
         const targetY = above ? Math.min(ev.note.y + h - 4, -1) : Math.max(ev.note.y + 4, 1);
         const targetX = ev.note.x + NOTE_WIDTH / 2;
-        return <Line key={ev.id} x1={ev.markerX} y1={0} x2={targetX} y2={targetY} stroke="#7c8089" strokeWidth={2} />;
+        const x1 = ev.markerX;
+        const y1 = 0;
+        const b = boundsFor(x1, y1, targetX, targetY, 20);
+        return (
+          <Svg
+            key={ev.id}
+            pointerEvents="none"
+            style={{ position: 'absolute', left: b.left, top: b.top, width: b.width, height: b.height }}
+            viewBox={`${b.left} ${b.top} ${b.width} ${b.height}`}
+          >
+            <Line x1={x1} y1={y1} x2={targetX} y2={targetY} stroke="#7c8089" strokeWidth={2} />
+          </Svg>
+        );
       })}
 
       {connections.map((conn) => {
         const a = getBlockRect(conn.from);
-        const b = getBlockRect(conn.to);
-        if (!a || !b) return null;
+        const bBlock = getBlockRect(conn.to);
+        if (!a || !bBlock) return null;
         const aCenter = { x: a.x + NOTE_WIDTH / 2, y: a.y + a.height / 2 };
-        const bCenter = { x: b.x + NOTE_WIDTH / 2, y: b.y + b.height / 2 };
+        const bCenter = { x: bBlock.x + NOTE_WIDTH / 2, y: bBlock.y + bBlock.height / 2 };
         const p1 = rectBorderPoint(aCenter.x, aCenter.y, bCenter.x, bCenter.y, NOTE_WIDTH / 2, a.height / 2);
-        const p2 = rectBorderPoint(bCenter.x, bCenter.y, aCenter.x, aCenter.y, NOTE_WIDTH / 2, b.height / 2);
+        const p2 = rectBorderPoint(bCenter.x, bCenter.y, aCenter.x, aCenter.y, NOTE_WIDTH / 2, bBlock.height / 2);
         const mid = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
         const isSelected = selectedConnectionId === conn.id;
+        const b = boundsFor(p1.x, p1.y, p2.x, p2.y, 24);
         return (
-          <G key={conn.id}>
+          <Svg
+            key={conn.id}
+            pointerEvents="box-none"
+            style={{ position: 'absolute', left: b.left, top: b.top, width: b.width, height: b.height }}
+            viewBox={`${b.left} ${b.top} ${b.width} ${b.height}`}
+          >
             <Line
               x1={p1.x}
               y1={p1.y}
@@ -76,19 +95,9 @@ export default function ConnectionsLayer({
                 <Line x1={mid.x - 4} y1={mid.y + 4} x2={mid.x + 4} y2={mid.y - 4} stroke="#e53935" strokeWidth={1.5} />
               </G>
             )}
-          </G>
+          </Svg>
         );
       })}
-    </Svg>
+    </>
   );
 }
-
-const styles = StyleSheet.create({
-  svg: {
-    position: 'absolute',
-    left: -100000,
-    top: -4000,
-    width: 200000,
-    height: 8000,
-  },
-});
